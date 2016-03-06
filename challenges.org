@@ -40,6 +40,7 @@ simple rule of thumb:
 
   Always operate on raw bytes, never on encoded strings. Only use hex
   and base64 for pretty-printing.
+
 ** Solution
 #+BEGIN_SRC emacs-lisp
   (defun hex (bytes)
@@ -51,6 +52,7 @@ simple rule of thumb:
            (loop for i below (length str) by 2
               collect (string-to-number (string (aref str i) (aref str (1+ i))) 16))))
 #+END_SRC
+
 * 2. Fixed XOR
   
 Write a function that takes two equal-length buffers and produces
@@ -79,6 +81,7 @@ The string:
   ;; (hex (fixed-xor (unhex "1c0111001f010100061a024b53535009181c")
   ;;                 (unhex "686974207468652062756c6c277320657965")))
 #+END_SRC
+
 * 3. Single-character XOR Cipher
 
 The hex encoded string:
@@ -229,6 +232,13 @@ Use OpenSSL::Cipher and give it AES-128-ECB as the cipher.
 
 // ------------------------------------------------------------
 
+** Solution
+DOES NOT WORK, FFS!
+openssl enc -a -d -aes-128-ecb -in yellow-submarine.txt  -k "YELLOW SUBMARINE"
+something about padding and IV ??
+use C instead
+    LDFLAGS:  -L/usr/local/opt/openssl/lib
+    CPPFLAGS: -I/usr/local/opt/openssl/include
 * 8. Detecting ECB
 
 At the following URL are a bunch of hex-encoded ciphertexts:
