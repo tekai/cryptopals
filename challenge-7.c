@@ -81,9 +81,7 @@ int do_crypt(FILE *in, FILE *out, int do_encrypt) {
     for(;;)  {
         inlen = fread(inbuf, 1, 8192, in);
         if(inlen <= 0) break;
-        printf("inlen: %d\n", inlen);
         base64_decode(inbuf, inlen, b64buf, &b64len);
-        printf("b64len: %d\n", b64len);
         if(!EVP_CipherUpdate(&ctx, outbuf, &outlen, b64buf, b64len)) {
             /* Error */
             EVP_CIPHER_CTX_cleanup(&ctx);
