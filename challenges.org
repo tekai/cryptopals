@@ -227,8 +227,6 @@ One of the 60-character strings at:
 has been encrypted by single-character XOR. Find it. (Your code from
 #3 should help.)
 
-// ------------------------------------------------------------
-
 ** 5. Repeating-key XOR Cipher
 
 Write the code to encrypt the string:
@@ -237,13 +235,12 @@ Write the code to encrypt the string:
   I go crazy when I hear a cymbal
 
 Under the key "ICE", using repeating-key XOR. It should come out to:
-
   0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f
 
 Encrypt a bunch of stuff using your repeating-key XOR function. Get a
 feel for it.
 
-// ------------------------------------------------------------
+
 *** Solution
 #+BEGIN_SRC emacs-lisp
   (defun fixed-xor (str1 key)
@@ -255,6 +252,7 @@ feel for it.
   
   ; (hex (fixed-xor "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal" "ICE"))
 #+END_SRC
+
 ** 6. Break repeating-key XOR
 
 The buffer at the following location:
@@ -352,7 +350,6 @@ Remember that the problem with ECB is that it is stateless and
 deterministic; the same 16 byte plaintext block will always produce
 the same 16 byte ciphertext.
 
-// ------------------------------------------------------------
 * Set 2
 This is the first of several sets on block cipher cryptography. This is
 bread-and-butter crypto, the kind you'll see implemented in most web
