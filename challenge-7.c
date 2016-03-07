@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
         if( access( argv[2], R_OK ) != -1 ) {
             out = fopen(argv[2], "r");
         } else {
-            fprintf(stderr, "Can't open input: %s\n", argv[1]);
+            fprintf(stderr, "Can't open output: %s\n", argv[1]);
             return 1;
         }
     }
