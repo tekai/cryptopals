@@ -1,4 +1,4 @@
-* Introduction & Rules
+* Introduction & Rules OLD
 Hello!
 
 Sorry if you're getting this problem set for the second time. We're
@@ -9,27 +9,131 @@ requested.
 
 To be clear, this is a subset comprising the first eight problems. You
 can get the second set by solving these first. Feel free to send us
-solutions in the language of your choice along with answers in
-comments or the body of your email.
+solutions in the language of your choice along with answers in comments
+or the body of your email.
 
 If you get stuck or need clarification on something, don't hesitate to
 ask! We're happy to help.
 
 THE RULES AND THEY ARE SOMEWHAT IMPORTANT:
 
-- Please do not share this with anyone or post solutions online. If you
-  have any friends who would like to participate, send them our way and
-  we will set them up.
+  - Please do not share this with anyone or post solutions online. If
+    you have any friends who would like to participate, send them our
+    way and we will set them up.
 
-- When you mail your solutions, please CC responses@matasanocryptopals.com.
+  - When you mail your solutions, please CC
+    responses@matasanocryptopals.com.
 
-- Please prefix the subject of your mail with RESPONSE:.
+  - Please prefix the subject of your mail with RESPONSE:.
 
-* 1. Convert hex to base64 and back.
+* Introduction
+We can't introduce these any better than [[https://blog.pinboard.in/2013/04/the_matasano_crypto_challenges/][Maciej Ceglowski]] did, so read
+that blog post first.
+
+We've built a collection of 48 exercises that demonstrate attacks on
+real-world crypto.
+
+This is a different way to learn about crypto than taking a class or
+reading a book. We give you problems to solve. They're derived from
+weaknesses in real-world systems and modern cryptographic
+constructions. We give you enough info to learn about the underlying
+crypto concepts yourself. When you're finished, you'll not only have
+learned a good deal about how cryptosystems are built, but you'll also
+understand how they're attacked.
+
+
+** What Are The Rules?
+
+There aren't any! For several years, we ran these challenges over email,
+and asked participants not to share their results. The honor system
+worked beautifully! But now we're ready to set aside the ceremony and
+just publish the challenges for everyone to work on.  How Much Math Do I
+Need To Know?
+
+If you have any trouble with the math in these problems, you should be
+able to find a local 9th grader to help you out. It turns out that many
+modern crypto attacks don't involve much hard math.
+
+
+** How Much Crypto Do I Need To Know?
+
+None. That's the point.
+
+
+** So What Do I Need To Know?
+
+You'll want to be able to code proficiently in any language. We've
+received submissions in C, C++, Python, Ruby, Perl, Visual Basic, X86
+Assembly, Haskell, and Lisp. Surprise us with another language. Our
+friend Maciej says these challenges are a good way to learn a new
+language, so maybe now's the time to pick up Clojure or Rust.  What
+Should I Expect?
+
+Right now, we have six sets. They get progressively harder. Again: these
+are based off real-world vulnerabilities. None of them are
+"puzzles". They're not designed to trip you up. Some of the attacks are
+clever, though, and if you're not familiar with crypto
+cleverness... well, you should like solving puzzles. An appreciation for
+early-90's MTV hip-hop can't hurt either.
+
+
+** Can You Give Us A Long-Winded Indulgent Description For Why You'Ve Chosen To Do This?
+
+It turns out that we can.
+
+If you're not that familiar with crypto already, or if your familiarity
+comes mostly from things like Applied Cryptography, this fact may
+surprise you: most crypto is fatally broken. The systems we're relying
+on today that aren't known to be fatally broken are in a state of just
+waiting to be fatally broken. Nobody is sure that TLS 1.2 or SSH 2 or
+OTR are going to remain safe as designed.
+
+The current state of crypto software security is similar to the state of
+software security in the 1990s. Specifically: until around 1995, it was
+not common knowledge that software built by humans might have trouble
+counting. As a result, nobody could size a buffer properly, and humanity
+incurred billions of dollars in cleanup after a decade and a half of
+emergency fixes for memory corruption vulnerabilities.
+
+Counting is not a hard problem. But cryptography is. There are just a
+few things you can screw up to get the size of a buffer wrong. There are
+tens, probably hundreds, of obscure little things you can do to take a
+cryptosystem that should be secure even against an adversary with more
+CPU cores than there are atoms in the solar system, and make it
+solveable with a Perl script and 15 seconds. Don't take our word for it:
+do the challenges and you'll see.
+
+People "know" this already, but they don't really know it in their gut,
+and we think the reason for that is that very few people actually know
+how to implement the best-known attacks. So, mail us, and we'll give you
+a tour of them.
+
+** Who did this?
+
+  - Thomas Ptacek (@tqbf)
+  - Sean Devlin (@spdevlin)
+  - Alex Balducci (@iamalexalright)
+  - Marcin Wielgoszewski (@marcinw)
+
+We could not possibly have done this without the help of several other
+people. Roughly in order of influence:
+
+  - Nate Lawson taught us virtually everything we know about
+    cryptography.
+  - Trevor Perrin taught Nate some of that. I can tell you a pretty
+    compelling story about how Trevor is the intellectual origin of
+    every successful attack on TLS over the past 5 years.
+  - Thai Duong and Juliano Rizzo are the godfathers of practical
+    cryptographic software security. Several things in this challenge
+    didn't make sense to us until after Thai and Juliano exploited them
+    in mainstream software.
+
+* Set 1
+** 1. Convert hex to base64 and back.
 
 The string:
 
-  49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d
+49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d
 
 should produce:
 
@@ -41,7 +145,7 @@ simple rule of thumb:
   Always operate on raw bytes, never on encoded strings. Only use hex
   and base64 for pretty-printing.
 
-** Solution
+*** Solution
 #+BEGIN_SRC emacs-lisp
   (defun hex (bytes)
     (loop for x across bytes
@@ -53,7 +157,7 @@ simple rule of thumb:
               collect (string-to-number (string (aref str i) (aref str (1+ i))) 16))))
 #+END_SRC
 
-* 2. Fixed XOR
+** 2. Fixed XOR
   
 Write a function that takes two equal-length buffers and produces
 their XOR sum.
@@ -70,7 +174,7 @@ The string:
 
  746865206b696420646f6e277420706c6179
 
-** Solution
+*** Solution
 #+BEGIN_SRC emacs-lisp
   (defun fixed-xor (str1 str2)
     (apply 'string
@@ -82,7 +186,7 @@ The string:
   ;;                 (unhex "686974207468652062756c6c277320657965")))
 #+END_SRC
 
-* 3. Single-character XOR Cipher
+** 3. Single-character XOR Cipher
 
 The hex encoded string:
 
@@ -96,7 +200,7 @@ piece of English plaintext. (Character frequency is a good metric.)
 Evaluate each output and choose the one with the best score.
 
 Tune your algorithm until this works.
-** Solution
+*** Solution
 We assume the text contains only letters numbers and punctuation. As far as letter frequency is concerned, we use information from Wikipedia and assume that the decoded text has the following letters in decreasing frequency: eaiou and maybe jxqz being very very odd.
 
 http://en.wikipedia.org/wiki/Letter_frequency#Relative_frequencies_of_letters_in_the_English_language
@@ -114,7 +218,7 @@ http://en.wikipedia.org/wiki/Letter_frequency#Relative_frequencies_of_letters_in
   ; so the letter is X, but now use some function to rate the output
   
 #+END_SRC
-* 4. Detect single-character XOR
+** 4. Detect single-character XOR
 
 One of the 60-character strings at:
 
@@ -125,7 +229,7 @@ has been encrypted by single-character XOR. Find it. (Your code from
 
 // ------------------------------------------------------------
 
-* 5. Repeating-key XOR Cipher
+** 5. Repeating-key XOR Cipher
 
 Write the code to encrypt the string:
 
@@ -140,7 +244,7 @@ Encrypt a bunch of stuff using your repeating-key XOR function. Get a
 feel for it.
 
 // ------------------------------------------------------------
-** Solution
+*** Solution
 #+BEGIN_SRC emacs-lisp
   (defun fixed-xor (str1 key)
     (apply 'string
@@ -151,7 +255,7 @@ feel for it.
   
   ; (hex (fixed-xor "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal" "ICE"))
 #+END_SRC
-* 6. Break repeating-key XOR
+** 6. Break repeating-key XOR
 
 The buffer at the following location:
 
@@ -212,7 +316,7 @@ e. For each block, the single-byte XOR key that produces the best
 looking histogram is the repeating-key XOR key byte for that
 block. Put them together and you have the key.
 
-* 7. AES in ECB Mode
+** 7. AES in ECB Mode
 
 The Base64-encoded content at the following location:
 
@@ -230,16 +334,13 @@ Easiest way:
 
 Use OpenSSL::Cipher and give it AES-128-ECB as the cipher.
 
-// ------------------------------------------------------------
+*** Solution
+using openssl commandline does not work:
+$ openssl enc -a -d -aes-128-ecb -in yellow-submarine.txt  -k "YELLOW SUBMARINE"
 
-** Solution
-DOES NOT WORK, FFS!
-openssl enc -a -d -aes-128-ecb -in yellow-submarine.txt  -k "YELLOW SUBMARINE"
-something about padding and IV ??
-use C instead
-$ base64 -D yellow-submarine.txt | ./challenge-7
+$ ./challenge-7 yellow-submarine.txt
 
-* 8. Detecting ECB
+** 8. Detecting ECB
 
 At the following URL are a bunch of hex-encoded ciphertexts:
 
@@ -252,3 +353,1048 @@ deterministic; the same 16 byte plaintext block will always produce
 the same 16 byte ciphertext.
 
 // ------------------------------------------------------------
+* Set 2
+This is the first of several sets on block cipher cryptography. This is
+bread-and-butter crypto, the kind you'll see implemented in most web
+software that does crypto.
+
+This set is relatively easy. People that clear set 1 tend to clear set 2
+somewhat quickly.
+
+Three of the challenges in this set are extremely valuable in breaking
+real-world crypto; one allows you to decrypt messages encrypted in the
+default mode of AES, and the other two allow you to rewrite messages
+encrypted in the most popular modes of AES.
+
+** 9. Implement PKCS#7 padding
+A block cipher transforms a fixed-sized block (usually 8 or 16 bytes) of
+plaintext into ciphertext. But we almost never want to transform a
+single block; we encrypt irregularly-sized messages.
+
+One way we account for irregularly-sized messages is by padding,
+creating a plaintext that is an even multiple of the blocksize. The most
+popular padding scheme is called PKCS#7.
+
+So: pad any block to a specific block length, by appending the number of
+bytes of padding to the end of the block. For instance,
+
+  "YELLOW SUBMARINE"
+
+... padded to 20 bytes would be:
+
+  "YELLOW SUBMARINE\x04\x04\x04\x04"
+
+** 10. Implement CBC mode
+
+CBC mode is a block cipher mode that allows us to encrypt
+irregularly-sized messages, despite the fact that a block cipher
+natively only transforms individual blocks.
+
+In CBC mode, each ciphertext block is added to the next plaintext block
+before the next call to the cipher core.
+
+The first plaintext block, which has no associated previous ciphertext
+block, is added to a "fake 0th ciphertext block" called the
+initialization vector, or IV.
+
+Implement CBC mode by hand by taking the ECB function you wrote earlier,
+making it encrypt instead of decrypt (verify this by decrypting whatever
+you encrypt to test), and using your XOR function from the previous
+exercise to combine them.
+
+The file here is intelligible (somewhat) when CBC decrypted against
+"YELLOW SUBMARINE" with an IV of all ASCII 0 (\x00\x00\x00 &c) Don't
+cheat.
+
+Do not use OpenSSL's CBC code to do CBC mode, even to verify your
+results. What's the point of even doing this stuff if you aren't going
+to learn from it?
+
+*** Data
+#+BEGIN_SRC fundamental
+  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
+#+END_SRC
+
+** 11. An ECB/CBC detection oracle
+Now that you have ECB and CBC working:
+
+Write a function to generate a random AES key; that's just 16 random
+bytes.
+
+Write a function that encrypts data under an unknown key --- that is, a
+function that generates a random key and encrypts under it.
+
+The function should look like:
+
+encryption_oracle(your-input)
+=> [MEANINGLESS JIBBER JABBER]
+
+Under the hood, have the function append 5-10 bytes (count chosen
+randomly) before the plaintext and 5-10 bytes after the plaintext.
+
+Now, have the function choose to encrypt under ECB 1/2 the time, and
+under CBC the other half (just use random IVs each time for CBC). Use
+rand(2) to decide which to use.
+
+Detect the block cipher mode the function is using each time. You should
+end up with a piece of code that, pointed at a block box that might be
+encrypting ECB or CBC, tells you which one is happening.
+
+
+** 12. Byte-at-a-time ECB decryption (Simple)
+
+Copy your oracle function to a new function that encrypts buffers under
+ECB mode using a consistent but unknown key (for instance, assign a
+single random key, once, to a global variable).
+
+Now take that same function and have it append to the plaintext, BEFORE
+ENCRYPTING, the following string:
+
+#+BEGIN_SRC fundamental
+  Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg
+  aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq
+  dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg
+  YnkK
+#+END_SRC
+
+Spoiler alert: Do not decode this string now. Don't do it.
+
+Base64 decode the string before appending it. Do not base64 decode the
+string by hand; make your code do it. The point is that you don't know
+its contents.
+
+What you have now is a function that produces:
+
+AES-128-ECB(your-string || unknown-string, random-key)
+
+It turns out: you can decrypt "unknown-string" with repeated calls to
+the oracle function!
+
+Here's roughly how:
+
+    1. Feed identical bytes of your-string to the function 1 at a time
+       --- start with 1 byte ("A"), then "AA", then "AAA" and so
+       on. Discover the block size of the cipher. You know it, but do
+       this step anyway.
+    2. Detect that the function is using ECB. You already know, but do
+       this step anyways.
+    3. Knowing the block size, craft an input block that is exactly 1
+       byte short (for instance, if the block size is 8 bytes, make
+       "AAAAAAA"). Think about what the oracle function is going to put
+       in that last byte position.
+    4. Make a dictionary of every possible last byte by feeding
+       different strings to the oracle; for instance, "AAAAAAAA",
+       "AAAAAAAB", "AAAAAAAC", remembering the first block of each
+       invocation.
+    5. Match the output of the one-byte-short input to one of the
+       entries in your dictionary. You've now discovered the first byte
+       of unknown-string.
+    6. Repeat for the next byte.
+
+Congratulations.
+
+This is the first challenge we've given you whose solution will break
+real crypto. Lots of people know that when you encrypt something in ECB
+mode, you can see penguins through it. Not so many of them can decrypt
+the contents of those ciphertexts, and now you can. If our experience is
+any guideline, this attack will get you code execution in security tests
+about once a year.
+
+** 13. ECB cut-and-paste
+
+Write a k=v parsing routine, as if for a structured cookie. The routine
+should take:
+
+foo=bar&baz=qux&zap=zazzle
+
+... and produce:
+#+BEGIN_SRC fundamental
+  {
+    foo: 'bar',
+    baz: 'qux',
+    zap: 'zazzle'
+  }
+#+END_SRC
+
+(you know, the object; I don't care if you convert it to JSON).
+
+Now write a function that encodes a user profile in that format, given
+an email address. You should have something like:
+
+  profile_for("foo@bar.com")
+
+... and it should produce:
+
+#+BEGIN_SRC fundamental
+  {
+    email: 'foo@bar.com',
+    uid: 10,
+    role: 'user'
+  }
+
+#+END_SRC
+
+... encoded as:
+
+  email=foo@bar.com&uid=10&role=user
+
+Your "profile_for" function should not allow encoding metacharacters (&
+and =). Eat them, quote them, whatever you want to do, but don't let
+people set their email address to "foo@bar.com&role=admin".
+
+Now, two more easy functions. Generate a random AES key, then:
+
+    1. Encrypt the encoded user profile under the key; "provide" that to
+       the "attacker".
+    2. Decrypt the encoded user profile and parse it.
+
+Using only the user input to profile_for() (as an oracle to generate
+"valid" ciphertexts) and the ciphertexts themselves, make a role=admin
+profile.
+
+** 14. Byte-at-a-time ECB decryption (Harder)
+
+Take your oracle function from #12. Now generate a random count of
+random bytes and prepend this string to every plaintext. You are now
+doing:
+
+  AES-128-ECB(random-prefix || attacker-controlled || target-bytes, random-key)
+
+Same goal: decrypt the target-bytes.
+
+Stop and think for a second.
+
+  What's harder than challenge #12 about doing this? How would you
+  overcome that obstacle? The hint is: you're using all the tools you
+  already have; no crazy math is required.
+
+  Think "STIMULUS" and "RESPONSE".
+
+** 15. PKCS#7 padding validation
+
+Write a function that takes a plaintext, determines if it has valid
+PKCS#7 padding, and strips the padding off.
+
+The string:
+
+  "ICE ICE BABY\x04\x04\x04\x04"
+
+... has valid padding, and produces the result "ICE ICE BABY".
+
+The string:
+
+  "ICE ICE BABY\x05\x05\x05\x05"
+
+... does not have valid padding, nor does:
+
+  "ICE ICE BABY\x01\x02\x03\x04"
+
+If you are writing in a language with exceptions, like Python or Ruby,
+make your function throw an exception on bad padding.
+
+Crypto nerds know where we're going with this. Bear with us.
+
+** 16. CBC bitflipping attacks
+
+Generate a random AES key.
+
+Combine your padding code and CBC code to write two functions.
+
+The first function should take an arbitrary input string, prepend the
+string:
+
+  "comment1=cooking%20MCs;userdata="
+
+.. and append the string:
+
+  ";comment2=%20like%20a%20pound%20of%20bacon"
+
+The function should quote out the ";" and "=" characters.
+
+The function should then pad out the input to the 16-byte AES block
+length and encrypt it under the random AES key.
+
+The second function should decrypt the string and look for the
+characters ";admin=true;" (or, equivalently, decrypt, split the string
+on ";", convert each resulting string into 2-tuples, and look for the
+"admin" tuple).
+
+Return true or false based on whether the string exists.
+
+If you've written the first function properly, it should not be possible
+to provide user input to it that will generate the string the second
+function is looking for. We'll have to break the crypto to do that.
+
+Instead, modify the ciphertext (without knowledge of the AES key) to
+accomplish this.
+
+You're relying on the fact that in CBC mode, a 1-bit error in a
+ciphertext block:
+
+    - Completely scrambles the block the error occurs in
+    - Produces the identical 1-bit error(/edit) in the next ciphertext
+      block.
+
+Stop and think for a second.
+
+Before you implement this attack, answer this question: why does CBC
+mode have this property?
+
+* Set 3
+
+This is the next set of block cipher cryptography challenges (even the
+randomness stuff here plays into block cipher crypto).
+
+This set is moderately difficult. It includes a famous attack against
+CBC mode, and a "cloning" attack on a popular RNG that can be annoying
+to get right.
+
+We've also reached a point in the crypto challenges where all the
+challenges, with one possible exception, are valuable in breaking
+real-world crypto.
+
+  17. The CBC padding oracle
+  18. Implement CTR, the stream cipher mode
+  19. Break fixed-nonce CTR mode using substitions
+  20. Break fixed-nonce CTR statistically
+  21. Implement the MT19937 Mersenne Twister RNG
+  22. Crack an MT19937 seed
+  23. Clone an MT19937 RNG from its output
+  24. Create the MT19937 stream cipher and break it
+
+** 17. The CBC padding oracle
+
+This is the best-known attack on modern block-cipher cryptography.
+
+Combine your padding code and your CBC code to write two functions.
+
+The first function should select at random one of the following 10
+strings:
+#+BEGIN_SRC fundamental
+  MDAwMDAwTm93IHRoYXQgdGhlIHBhcnR5IGlzIGp1bXBpbmc=
+  MDAwMDAxV2l0aCB0aGUgYmFzcyBraWNrZWQgaW4gYW5kIHRoZSBWZWdhJ3MgYXJlIHB1bXBpbic=
+  MDAwMDAyUXVpY2sgdG8gdGhlIHBvaW50LCB0byB0aGUgcG9pbnQsIG5vIGZha2luZw==
+  MDAwMDAzQ29va2luZyBNQydzIGxpa2UgYSBwb3VuZCBvZiBiYWNvbg==
+  MDAwMDA0QnVybmluZyAnZW0sIGlmIHlvdSBhaW4ndCBxdWljayBhbmQgbmltYmxl
+  MDAwMDA1SSBnbyBjcmF6eSB3aGVuIEkgaGVhciBhIGN5bWJhbA==
+  MDAwMDA2QW5kIGEgaGlnaCBoYXQgd2l0aCBhIHNvdXBlZCB1cCB0ZW1wbw==
+  MDAwMDA3SSdtIG9uIGEgcm9sbCwgaXQncyB0aW1lIHRvIGdvIHNvbG8=
+  MDAwMDA4b2xsaW4nIGluIG15IGZpdmUgcG9pbnQgb2g=
+  MDAwMDA5aXRoIG15IHJhZy10b3AgZG93biBzbyBteSBoYWlyIGNhbiBibG93
+#+END_SRC
+
+... generate a random AES key (which it should save for all future
+encryptions), pad the string out to the 16-byte AES block size and
+CBC-encrypt it under that key, providing the caller the ciphertext and
+IV.
+
+The second function should consume the ciphertext produced by the first
+function, decrypt it, check its padding, and return true or false
+depending on whether the padding is valid.
+
+What you're doing here.
+
+  This pair of functions approximates AES-CBC encryption as its deployed
+  serverside in web applications; the second function models the
+  server's consumption of an encrypted session token, as if it was a
+  cookie.
+
+It turns out that it's possible to decrypt the ciphertexts provided by
+the first function.
+
+The decryption here depends on a side-channel leak by the decryption
+function. The leak is the error message that the padding is valid or
+not.
+
+You can find 100 web pages on how this attack works, so I won't
+re-explain it. What I'll say is this:
+
+The fundamental insight behind this attack is that the byte 01h is valid
+padding, and occur in 1/256 trials of "randomized" plaintexts produced
+by decrypting a tampered ciphertext.
+
+02h in isolation is not valid padding.
+
+02h 02h is valid padding, but is much less likely to occur randomly than
+01h.
+
+03h 03h 03h is even less likely.
+
+So you can assume that if you corrupt a decryption AND it had valid
+padding, you know what that padding byte is.
+
+It is easy to get tripped up on the fact that CBC plaintexts are
+"padded". Padding oracles have nothing to do with the actual padding on
+a CBC plaintext. It's an attack that targets a specific bit of code that
+handles decryption. You can mount a padding oracle on any CBC block,
+whether it's padded or not.
+
+** 18. Implement CTR, the stream cipher mode
+
+The string:
+
+L77na/nrFsKvynd6HzOoG7GHTLXsTVu9qvY/2syLXzhPweyyMTJULu/6/kXX0KSvoOLSFQ==
+
+... decrypts to something approximating English in CTR mode, which is an
+AES block cipher mode that turns AES into a stream cipher, with the
+following parameters:
+
+      key=YELLOW SUBMARINE
+      nonce=0
+      format=64 bit unsigned little endian nonce,
+             64 bit little endian block count (byte count / 16)
+
+CTR mode is very simple.
+
+Instead of encrypting the plaintext, CTR mode encrypts a running
+counter, producing a 16 byte block of keystream, which is XOR'd against
+the plaintext.
+
+For instance, for the first 16 bytes of a message with these parameters:
+
+keystream = AES("YELLOW SUBMARINE",
+                "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+
+... for the next 16 bytes:
+
+keystream = AES("YELLOW SUBMARINE",
+                "\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00")
+
+... and then:
+
+keystream = AES("YELLOW SUBMARINE",
+                "\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00")
+
+CTR mode does not require padding; when you run out of plaintext, you
+just stop XOR'ing keystream and stop generating keystream.
+
+Decryption is identical to encryption. Generate the same keystream, XOR,
+and recover the plaintext.
+
+Decrypt the string at the top of this function, then use your CTR
+function to encrypt and decrypt other things.
+
+This is the only block cipher mode that matters in good code.
+
+  Most modern cryptography relies on CTR mode to adapt block ciphers
+  into stream ciphers, because most of what we want to encrypt is better
+  described as a stream than as a sequence of blocks. Daniel Bernstein
+  once quipped to Phil Rogaway that good cryptosystems don't need the
+  "decrypt" transforms. Constructions like CTR are what he was talking
+  about.
+
+** 19. Break fixed-nonce CTR mode using substitions
+
+Take your CTR encrypt/decrypt function and fix its nonce value
+to 0. Generate a random AES key.
+
+In successive encryptions (not in one big running CTR stream), encrypt
+each line of the base64 decodes of the following, producing multiple
+independent ciphertexts:
+
+#+BEGIN_SRC fundamental
+  SSBoYXZlIG1ldCB0aGVtIGF0IGNsb3NlIG9mIGRheQ==
+  Q29taW5nIHdpdGggdml2aWQgZmFjZXM=
+  RnJvbSBjb3VudGVyIG9yIGRlc2sgYW1vbmcgZ3JleQ==
+  RWlnaHRlZW50aC1jZW50dXJ5IGhvdXNlcy4=
+  SSBoYXZlIHBhc3NlZCB3aXRoIGEgbm9kIG9mIHRoZSBoZWFk
+  T3IgcG9saXRlIG1lYW5pbmdsZXNzIHdvcmRzLA==
+  T3IgaGF2ZSBsaW5nZXJlZCBhd2hpbGUgYW5kIHNhaWQ=
+  UG9saXRlIG1lYW5pbmdsZXNzIHdvcmRzLA==
+  QW5kIHRob3VnaHQgYmVmb3JlIEkgaGFkIGRvbmU=
+  T2YgYSBtb2NraW5nIHRhbGUgb3IgYSBnaWJl
+  VG8gcGxlYXNlIGEgY29tcGFuaW9u
+  QXJvdW5kIHRoZSBmaXJlIGF0IHRoZSBjbHViLA==
+  QmVpbmcgY2VydGFpbiB0aGF0IHRoZXkgYW5kIEk=
+  QnV0IGxpdmVkIHdoZXJlIG1vdGxleSBpcyB3b3JuOg==
+  QWxsIGNoYW5nZWQsIGNoYW5nZWQgdXR0ZXJseTo=
+  QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4=
+  VGhhdCB3b21hbidzIGRheXMgd2VyZSBzcGVudA==
+  SW4gaWdub3JhbnQgZ29vZCB3aWxsLA==
+  SGVyIG5pZ2h0cyBpbiBhcmd1bWVudA==
+  VW50aWwgaGVyIHZvaWNlIGdyZXcgc2hyaWxsLg==
+  V2hhdCB2b2ljZSBtb3JlIHN3ZWV0IHRoYW4gaGVycw==
+  V2hlbiB5b3VuZyBhbmQgYmVhdXRpZnVsLA==
+  U2hlIHJvZGUgdG8gaGFycmllcnM/
+  VGhpcyBtYW4gaGFkIGtlcHQgYSBzY2hvb2w=
+  QW5kIHJvZGUgb3VyIHdpbmdlZCBob3JzZS4=
+  VGhpcyBvdGhlciBoaXMgaGVscGVyIGFuZCBmcmllbmQ=
+  V2FzIGNvbWluZyBpbnRvIGhpcyBmb3JjZTs=
+  SGUgbWlnaHQgaGF2ZSB3b24gZmFtZSBpbiB0aGUgZW5kLA==
+  U28gc2Vuc2l0aXZlIGhpcyBuYXR1cmUgc2VlbWVkLA==
+  U28gZGFyaW5nIGFuZCBzd2VldCBoaXMgdGhvdWdodC4=
+  VGhpcyBvdGhlciBtYW4gSSBoYWQgZHJlYW1lZA==
+  QSBkcnVua2VuLCB2YWluLWdsb3Jpb3VzIGxvdXQu
+  SGUgaGFkIGRvbmUgbW9zdCBiaXR0ZXIgd3Jvbmc=
+  VG8gc29tZSB3aG8gYXJlIG5lYXIgbXkgaGVhcnQs
+  WWV0IEkgbnVtYmVyIGhpbSBpbiB0aGUgc29uZzs=
+  SGUsIHRvbywgaGFzIHJlc2lnbmVkIGhpcyBwYXJ0
+  SW4gdGhlIGNhc3VhbCBjb21lZHk7
+  SGUsIHRvbywgaGFzIGJlZW4gY2hhbmdlZCBpbiBoaXMgdHVybiw=
+  VHJhbnNmb3JtZWQgdXR0ZXJseTo=
+  QSB0ZXJyaWJsZSBiZWF1dHkgaXMgYm9ybi4=
+#+END_SRC
+
+(This should produce 40 short CTR-encrypted ciphertexts).
+
+Because the CTR nonce wasn't randomized for each encryption, each
+ciphertext has been encrypted against the same keystream. This is very
+bad.
+
+Understanding that, like most stream ciphers (including RC4, and
+obviously any block cipher run in CTR mode), the actual "encryption" of
+a byte of data boils down to a single XOR operation, it should be plain
+that:
+
+CIPHERTEXT-BYTE XOR PLAINTEXT-BYTE = KEYSTREAM-BYTE
+
+And since the keystream is the same for every ciphertext:
+
+CIPHERTEXT-BYTE XOR KEYSTREAM-BYTE = PLAINTEXT-BYTE (ie, "you don't
+say!")
+
+Attack this cryptosystem piecemeal: guess letters, use expected English
+language frequence to validate guesses, catch common English trigrams,
+and so on.
+
+Don't overthink it.
+
+  Points for automating this, but part of the reason I'm having you do
+  this is that I think this approach is suboptimal.
+** 20. Break fixed-nonce CTR statistically
+
+In this file find a similar set of Base64'd plaintext. Do with them
+exactly what you did with the first, but solve the problem differently.
+
+Instead of making spot guesses at to known plaintext, treat the
+collection of ciphertexts the same way you would repeating-key XOR.
+
+Obviously, CTR encryption appears different from repeated-key XOR, but
+with a fixed nonce they are effectively the same thing.
+
+To exploit this: take your collection of ciphertexts and truncate them
+to a common length (the length of the smallest ciphertext will work).
+
+Solve the resulting concatenation of ciphertexts as if for repeating-
+key XOR, with a key size of the length of the ciphertext you XOR'd.
+
+*** Data
+#+BEGIN_SRC fundamental
+  SSdtIHJhdGVkICJSIi4uLnRoaXMgaXMgYSB3YXJuaW5nLCB5YSBiZXR0ZXIgdm9pZCAvIFBvZXRzIGFyZSBwYXJhbm9pZCwgREoncyBELXN0cm95ZWQ=
+  Q3V6IEkgY2FtZSBiYWNrIHRvIGF0dGFjayBvdGhlcnMgaW4gc3BpdGUtIC8gU3RyaWtlIGxpa2UgbGlnaHRuaW4nLCBJdCdzIHF1aXRlIGZyaWdodGVuaW4nIQ==
+  QnV0IGRvbid0IGJlIGFmcmFpZCBpbiB0aGUgZGFyaywgaW4gYSBwYXJrIC8gTm90IGEgc2NyZWFtIG9yIGEgY3J5LCBvciBhIGJhcmssIG1vcmUgbGlrZSBhIHNwYXJrOw==
+  WWEgdHJlbWJsZSBsaWtlIGEgYWxjb2hvbGljLCBtdXNjbGVzIHRpZ2h0ZW4gdXAgLyBXaGF0J3MgdGhhdCwgbGlnaHRlbiB1cCEgWW91IHNlZSBhIHNpZ2h0IGJ1dA==
+  U3VkZGVubHkgeW91IGZlZWwgbGlrZSB5b3VyIGluIGEgaG9ycm9yIGZsaWNrIC8gWW91IGdyYWIgeW91ciBoZWFydCB0aGVuIHdpc2ggZm9yIHRvbW9ycm93IHF1aWNrIQ==
+  TXVzaWMncyB0aGUgY2x1ZSwgd2hlbiBJIGNvbWUgeW91ciB3YXJuZWQgLyBBcG9jYWx5cHNlIE5vdywgd2hlbiBJJ20gZG9uZSwgeWEgZ29uZSE=
+  SGF2ZW4ndCB5b3UgZXZlciBoZWFyZCBvZiBhIE1DLW11cmRlcmVyPyAvIFRoaXMgaXMgdGhlIGRlYXRoIHBlbmFsdHksYW5kIEknbSBzZXJ2aW4nIGE=
+  RGVhdGggd2lzaCwgc28gY29tZSBvbiwgc3RlcCB0byB0aGlzIC8gSHlzdGVyaWNhbCBpZGVhIGZvciBhIGx5cmljYWwgcHJvZmVzc2lvbmlzdCE=
+  RnJpZGF5IHRoZSB0aGlydGVlbnRoLCB3YWxraW5nIGRvd24gRWxtIFN0cmVldCAvIFlvdSBjb21lIGluIG15IHJlYWxtIHlhIGdldCBiZWF0IQ==
+  VGhpcyBpcyBvZmYgbGltaXRzLCBzbyB5b3VyIHZpc2lvbnMgYXJlIGJsdXJyeSAvIEFsbCB5YSBzZWUgaXMgdGhlIG1ldGVycyBhdCBhIHZvbHVtZQ==
+  VGVycm9yIGluIHRoZSBzdHlsZXMsIG5ldmVyIGVycm9yLWZpbGVzIC8gSW5kZWVkIEknbSBrbm93bi15b3VyIGV4aWxlZCE=
+  Rm9yIHRob3NlIHRoYXQgb3Bwb3NlIHRvIGJlIGxldmVsIG9yIG5leHQgdG8gdGhpcyAvIEkgYWluJ3QgYSBkZXZpbCBhbmQgdGhpcyBhaW4ndCB0aGUgRXhvcmNpc3Qh
+  V29yc2UgdGhhbiBhIG5pZ2h0bWFyZSwgeW91IGRvbid0IGhhdmUgdG8gc2xlZXAgYSB3aW5rIC8gVGhlIHBhaW4ncyBhIG1pZ3JhaW5lIGV2ZXJ5IHRpbWUgeWEgdGhpbms=
+  Rmxhc2hiYWNrcyBpbnRlcmZlcmUsIHlhIHN0YXJ0IHRvIGhlYXI6IC8gVGhlIFItQS1LLUktTSBpbiB5b3VyIGVhcjs=
+  VGhlbiB0aGUgYmVhdCBpcyBoeXN0ZXJpY2FsIC8gVGhhdCBtYWtlcyBFcmljIGdvIGdldCBhIGF4IGFuZCBjaG9wcyB0aGUgd2Fjaw==
+  U29vbiB0aGUgbHlyaWNhbCBmb3JtYXQgaXMgc3VwZXJpb3IgLyBGYWNlcyBvZiBkZWF0aCByZW1haW4=
+  TUMncyBkZWNheWluZywgY3V6IHRoZXkgbmV2ZXIgc3RheWVkIC8gVGhlIHNjZW5lIG9mIGEgY3JpbWUgZXZlcnkgbmlnaHQgYXQgdGhlIHNob3c=
+  VGhlIGZpZW5kIG9mIGEgcmh5bWUgb24gdGhlIG1pYyB0aGF0IHlvdSBrbm93IC8gSXQncyBvbmx5IG9uZSBjYXBhYmxlLCBicmVha3MtdGhlIHVuYnJlYWthYmxl
+  TWVsb2RpZXMtdW5tYWthYmxlLCBwYXR0ZXJuLXVuZXNjYXBhYmxlIC8gQSBob3JuIGlmIHdhbnQgdGhlIHN0eWxlIEkgcG9zc2Vz
+  SSBibGVzcyB0aGUgY2hpbGQsIHRoZSBlYXJ0aCwgdGhlIGdvZHMgYW5kIGJvbWIgdGhlIHJlc3QgLyBGb3IgdGhvc2UgdGhhdCBlbnZ5IGEgTUMgaXQgY2FuIGJl
+  SGF6YXJkb3VzIHRvIHlvdXIgaGVhbHRoIHNvIGJlIGZyaWVuZGx5IC8gQSBtYXR0ZXIgb2YgbGlmZSBhbmQgZGVhdGgsIGp1c3QgbGlrZSBhIGV0Y2gtYS1za2V0Y2g=
+  U2hha2UgJ3RpbGwgeW91ciBjbGVhciwgbWFrZSBpdCBkaXNhcHBlYXIsIG1ha2UgdGhlIG5leHQgLyBBZnRlciB0aGUgY2VyZW1vbnksIGxldCB0aGUgcmh5bWUgcmVzdCBpbiBwZWFjZQ==
+  SWYgbm90LCBteSBzb3VsJ2xsIHJlbGVhc2UhIC8gVGhlIHNjZW5lIGlzIHJlY3JlYXRlZCwgcmVpbmNhcm5hdGVkLCB1cGRhdGVkLCBJJ20gZ2xhZCB5b3UgbWFkZSBpdA==
+  Q3V6IHlvdXIgYWJvdXQgdG8gc2VlIGEgZGlzYXN0cm91cyBzaWdodCAvIEEgcGVyZm9ybWFuY2UgbmV2ZXIgYWdhaW4gcGVyZm9ybWVkIG9uIGEgbWljOg==
+  THlyaWNzIG9mIGZ1cnkhIEEgZmVhcmlmaWVkIGZyZWVzdHlsZSEgLyBUaGUgIlIiIGlzIGluIHRoZSBob3VzZS10b28gbXVjaCB0ZW5zaW9uIQ==
+  TWFrZSBzdXJlIHRoZSBzeXN0ZW0ncyBsb3VkIHdoZW4gSSBtZW50aW9uIC8gUGhyYXNlcyB0aGF0J3MgZmVhcnNvbWU=
+  WW91IHdhbnQgdG8gaGVhciBzb21lIHNvdW5kcyB0aGF0IG5vdCBvbmx5IHBvdW5kcyBidXQgcGxlYXNlIHlvdXIgZWFyZHJ1bXM7IC8gSSBzaXQgYmFjayBhbmQgb2JzZXJ2ZSB0aGUgd2hvbGUgc2NlbmVyeQ==
+  VGhlbiBub25jaGFsYW50bHkgdGVsbCB5b3Ugd2hhdCBpdCBtZWFuIHRvIG1lIC8gU3RyaWN0bHkgYnVzaW5lc3MgSSdtIHF1aWNrbHkgaW4gdGhpcyBtb29k
+  QW5kIEkgZG9uJ3QgY2FyZSBpZiB0aGUgd2hvbGUgY3Jvd2QncyBhIHdpdG5lc3MhIC8gSSdtIGEgdGVhciB5b3UgYXBhcnQgYnV0IEknbSBhIHNwYXJlIHlvdSBhIGhlYXJ0
+  UHJvZ3JhbSBpbnRvIHRoZSBzcGVlZCBvZiB0aGUgcmh5bWUsIHByZXBhcmUgdG8gc3RhcnQgLyBSaHl0aG0ncyBvdXQgb2YgdGhlIHJhZGl1cywgaW5zYW5lIGFzIHRoZSBjcmF6aWVzdA==
+  TXVzaWNhbCBtYWRuZXNzIE1DIGV2ZXIgbWFkZSwgc2VlIGl0J3MgLyBOb3cgYW4gZW1lcmdlbmN5LCBvcGVuLWhlYXJ0IHN1cmdlcnk=
+  T3BlbiB5b3VyIG1pbmQsIHlvdSB3aWxsIGZpbmQgZXZlcnkgd29yZCdsbCBiZSAvIEZ1cmllciB0aGFuIGV2ZXIsIEkgcmVtYWluIHRoZSBmdXJ0dXJl
+  QmF0dGxlJ3MgdGVtcHRpbmcuLi53aGF0ZXZlciBzdWl0cyB5YSEgLyBGb3Igd29yZHMgdGhlIHNlbnRlbmNlLCB0aGVyZSdzIG5vIHJlc2VtYmxhbmNl
+  WW91IHRoaW5rIHlvdSdyZSBydWZmZXIsIHRoZW4gc3VmZmVyIHRoZSBjb25zZXF1ZW5jZXMhIC8gSSdtIG5ldmVyIGR5aW5nLXRlcnJpZnlpbmcgcmVzdWx0cw==
+  SSB3YWtlIHlhIHdpdGggaHVuZHJlZHMgb2YgdGhvdXNhbmRzIG9mIHZvbHRzIC8gTWljLXRvLW1vdXRoIHJlc3VzY2l0YXRpb24sIHJoeXRobSB3aXRoIHJhZGlhdGlvbg==
+  Tm92b2NhaW4gZWFzZSB0aGUgcGFpbiBpdCBtaWdodCBzYXZlIGhpbSAvIElmIG5vdCwgRXJpYyBCLidzIHRoZSBqdWRnZSwgdGhlIGNyb3dkJ3MgdGhlIGp1cnk=
+  WW8gUmFraW0sIHdoYXQncyB1cD8gLyBZbywgSSdtIGRvaW5nIHRoZSBrbm93bGVkZ2UsIEUuLCBtYW4gSSdtIHRyeWluZyB0byBnZXQgcGFpZCBpbiBmdWxs
+  V2VsbCwgY2hlY2sgdGhpcyBvdXQsIHNpbmNlIE5vcmJ5IFdhbHRlcnMgaXMgb3VyIGFnZW5jeSwgcmlnaHQ/IC8gVHJ1ZQ==
+  S2FyYSBMZXdpcyBpcyBvdXIgYWdlbnQsIHdvcmQgdXAgLyBaYWtpYSBhbmQgNHRoIGFuZCBCcm9hZHdheSBpcyBvdXIgcmVjb3JkIGNvbXBhbnksIGluZGVlZA==
+  T2theSwgc28gd2hvIHdlIHJvbGxpbicgd2l0aCB0aGVuPyBXZSByb2xsaW4nIHdpdGggUnVzaCAvIE9mIFJ1c2h0b3duIE1hbmFnZW1lbnQ=
+  Q2hlY2sgdGhpcyBvdXQsIHNpbmNlIHdlIHRhbGtpbmcgb3ZlciAvIFRoaXMgZGVmIGJlYXQgcmlnaHQgaGVyZSB0aGF0IEkgcHV0IHRvZ2V0aGVy
+  SSB3YW5uYSBoZWFyIHNvbWUgb2YgdGhlbSBkZWYgcmh5bWVzLCB5b3Uga25vdyB3aGF0IEknbSBzYXlpbic/IC8gQW5kIHRvZ2V0aGVyLCB3ZSBjYW4gZ2V0IHBhaWQgaW4gZnVsbA==
+  VGhpbmtpbicgb2YgYSBtYXN0ZXIgcGxhbiAvICdDdXogYWluJ3QgbnV0aGluJyBidXQgc3dlYXQgaW5zaWRlIG15IGhhbmQ=
+  U28gSSBkaWcgaW50byBteSBwb2NrZXQsIGFsbCBteSBtb25leSBpcyBzcGVudCAvIFNvIEkgZGlnIGRlZXBlciBidXQgc3RpbGwgY29taW4nIHVwIHdpdGggbGludA==
+  U28gSSBzdGFydCBteSBtaXNzaW9uLCBsZWF2ZSBteSByZXNpZGVuY2UgLyBUaGlua2luJyBob3cgY291bGQgSSBnZXQgc29tZSBkZWFkIHByZXNpZGVudHM=
+  SSBuZWVkIG1vbmV5LCBJIHVzZWQgdG8gYmUgYSBzdGljay11cCBraWQgLyBTbyBJIHRoaW5rIG9mIGFsbCB0aGUgZGV2aW91cyB0aGluZ3MgSSBkaWQ=
+  SSB1c2VkIHRvIHJvbGwgdXAsIHRoaXMgaXMgYSBob2xkIHVwLCBhaW4ndCBudXRoaW4nIGZ1bm55IC8gU3RvcCBzbWlsaW5nLCBiZSBzdGlsbCwgZG9uJ3QgbnV0aGluJyBtb3ZlIGJ1dCB0aGUgbW9uZXk=
+  QnV0IG5vdyBJIGxlYXJuZWQgdG8gZWFybiAnY3V6IEknbSByaWdodGVvdXMgLyBJIGZlZWwgZ3JlYXQsIHNvIG1heWJlIEkgbWlnaHQganVzdA==
+  U2VhcmNoIGZvciBhIG5pbmUgdG8gZml2ZSwgaWYgSSBzdHJpdmUgLyBUaGVuIG1heWJlIEknbGwgc3RheSBhbGl2ZQ==
+  U28gSSB3YWxrIHVwIHRoZSBzdHJlZXQgd2hpc3RsaW4nIHRoaXMgLyBGZWVsaW4nIG91dCBvZiBwbGFjZSAnY3V6LCBtYW4sIGRvIEkgbWlzcw==
+  QSBwZW4gYW5kIGEgcGFwZXIsIGEgc3RlcmVvLCBhIHRhcGUgb2YgLyBNZSBhbmQgRXJpYyBCLCBhbmQgYSBuaWNlIGJpZyBwbGF0ZSBvZg==
+  RmlzaCwgd2hpY2ggaXMgbXkgZmF2b3JpdGUgZGlzaCAvIEJ1dCB3aXRob3V0IG5vIG1vbmV5IGl0J3Mgc3RpbGwgYSB3aXNo
+  J0N1eiBJIGRvbid0IGxpa2UgdG8gZHJlYW0gYWJvdXQgZ2V0dGluJyBwYWlkIC8gU28gSSBkaWcgaW50byB0aGUgYm9va3Mgb2YgdGhlIHJoeW1lcyB0aGF0IEkgbWFkZQ==
+  U28gbm93IHRvIHRlc3QgdG8gc2VlIGlmIEkgZ290IHB1bGwgLyBIaXQgdGhlIHN0dWRpbywgJ2N1eiBJJ20gcGFpZCBpbiBmdWxs
+  UmFraW0sIGNoZWNrIHRoaXMgb3V0LCB5byAvIFlvdSBnbyB0byB5b3VyIGdpcmwgaG91c2UgYW5kIEknbGwgZ28gdG8gbWluZQ==
+  J0NhdXNlIG15IGdpcmwgaXMgZGVmaW5pdGVseSBtYWQgLyAnQ2F1c2UgaXQgdG9vayB1cyB0b28gbG9uZyB0byBkbyB0aGlzIGFsYnVt
+  WW8sIEkgaGVhciB3aGF0IHlvdSdyZSBzYXlpbmcgLyBTbyBsZXQncyBqdXN0IHB1bXAgdGhlIG11c2ljIHVw
+  QW5kIGNvdW50IG91ciBtb25leSAvIFlvLCB3ZWxsIGNoZWNrIHRoaXMgb3V0LCB5byBFbGk=
+  VHVybiBkb3duIHRoZSBiYXNzIGRvd24gLyBBbmQgbGV0IHRoZSBiZWF0IGp1c3Qga2VlcCBvbiByb2NraW4n
+  QW5kIHdlIG91dHRhIGhlcmUgLyBZbywgd2hhdCBoYXBwZW5lZCB0byBwZWFjZT8gLyBQZWFjZQ==
+#+END_SRC
+
+** 21. Implement the MT19937 Mersenne Twister RNG
+
+You can get the psuedocode for this from Wikipedia.
+
+If you're writing in Python, Ruby, or (gah) PHP, your language is
+probably already giving you MT19937 as "rand()"; don't use rand(). Write
+the RNG yourself.
+
+#+BEGIN_SRC fundamental
+  /*
+  The general algorithm is characterized by the following quantities (some of these explanations make sense only after reading the rest of the algorithm):
+
+    w: word size (in number of bits)
+    n: degree of recurrence
+    m: middle word, an offset used in the recurrence relation defining the series x, 1 ≤ m < n
+    r: separation point of one word, or the number of bits of the lower bitmask, 0 ≤ r ≤ w - 1
+    a: coefficients of the rational normal form twist matrix
+    b, c: TGFSR(R) tempering bitmasks
+    s, t: TGFSR(R) tempering bit shifts
+    u, d, l: additional Mersenne Twister tempering bit shifts/masks
+   ,*/
+
+  // Create a length n array to store the state of the generator
+   int[0..n-1] MT
+   int index := n+1
+   const int lower_mask = (1 << r) - 1 // That is, the binary number of r 1's
+   const int upper_mask = lowest w bits of (not lower_mask)
+   
+   // Initialize the generator from a seed
+   function seed_mt(int seed) {
+       index := n
+       MT[0] := seed
+       for i from 1 to (n - 1) { // loop over each element
+           MT[i] := lowest w bits of (f * (MT[i-1] xor (MT[i-1] >> (w-2))) + i)
+       }
+   }
+   
+   // Extract a tempered value based on MT[index]
+   // calling twist() every n numbers
+   function extract_number() {
+       if index >= n {
+           if index > n {
+             error "Generator was never seeded"
+             // Alternatively, seed with constant value; 5489 is used in reference C code[44]
+           }
+           twist()
+       }
+   
+       int y := MT[index]
+       y := y xor ((y >> u) and d)
+       y := y xor ((y << s) and b)
+       y := y xor ((y << t) and c)
+       y := y xor (y >> l)
+   
+       index := index + 1
+       return lowest w bits of (y)
+   }
+   
+   // Generate the next n values from the series x_i 
+   function twist() {
+       for i from 0 to (n-1) {
+           int x := (MT[i] and upper_mask)
+                     + (MT[(i+1) mod n] and lower_mask)
+           int xA := x >> 1
+           if (x mod 2) != 0 { // lowest bit of x is 1
+               xA := xA xor a
+           }
+           MT[i] := MT[(i + m) mod n] xor xA
+       }
+       index := 0
+   }
+#+END_SRC
+
+** 22. Crack an MT19937 seed
+
+Make sure your MT19937 accepts an integer seed value. Test it (verify
+that you're getting the same sequence of outputs given a seed).
+
+Write a routine that performs the following operation:
+
+    - Wait a random number of seconds between, I don't know, 40 and 1000.
+    - Seeds the RNG with the current Unix timestamp
+    - Waits a random number of seconds again.
+    - Returns the first 32 bit output of the RNG.
+
+You get the idea. Go get coffee while it runs. Or just simulate the
+passage of time, although you're missing some of the fun of this
+exercise if you do that.
+
+From the 32 bit RNG output, discover the seed.
+
+** 23. Clone an MT19937 RNG from its output
+
+The internal state of MT19937 consists of 624 32 bit integers.
+
+For each batch of 624 outputs, MT permutes that internal state. By
+permuting state regularly, MT19937 achieves a period of 2**19937, which
+is Big.
+
+Each time MT19937 is tapped, an element of its internal state is
+subjected to a tempering function that diffuses bits through the result.
+
+The tempering function is invertible; you can write an "untemper"
+function that takes an MT19937 output and transforms it back into the
+corresponding element of the MT19937 state array.
+
+To invert the temper transform, apply the inverse of each of the
+operations in the temper transform in reverse order. There are two kinds
+of operations in the temper transform each applied twice; one is an XOR
+against a right-shifted value, and the other is an XOR against a
+left-shifted value AND'd with a magic number. So you'll need code to
+invert the "right" and the "left" operation.
+
+Once you have "untemper" working, create a new MT19937 generator, tap it
+for 624 outputs, untemper each of them to recreate the state of the
+generator, and splice that state into a new instance of the MT19937
+generator.
+
+The new "spliced" generator should predict the values of the original.
+
+Stop and think for a second.
+
+  How would you modify MT19937 to make this attack hard? What would
+  happen if you subjected each tempered output to a cryptographic hash?
+
+** 24. Create the MT19937 stream cipher and break it
+
+You can create a trivial stream cipher out of any PRNG; use it to
+generate a sequence of 8 bit outputs and call those outputs a
+keystream. XOR each byte of plaintext with each successive byte of
+keystream.
+
+Write the function that does this for MT19937 using a 16-bit
+seed. Verify that you can encrypt and decrypt properly. This code should
+look similar to your CTR code.
+
+Use your function to encrypt a known plaintext (say, 14 consecutive 'A'
+characters) prefixed by a random number of random characters.
+
+From the ciphertext, recover the "key" (the 16 bit seed).
+
+Use the same idea to generate a random "password reset token" using
+MT19937 seeded from the current time.
+
+Write a function to check if any given password token is actually the
+product of an MT19937 PRNG seeded with the current time.
+
+* Set 4
+
+This is the last set of block cipher cryptography challenges, and also
+our coverage of message authentication.
+
+This set is much easier than the last set. We introduce some new
+concepts, but the attacks themselves involve less code than, say, the
+CBC padding oracle.
+
+Things get significantly trickier in the next two sets. A lot of people
+drop off after set 4.
+
+  25. Break "random access read/write" AES CTR
+  26. CTR bitflipping
+  27. Recover the key from CBC with IV=Key
+  28. Implement a SHA-1 keyed MAC
+  29. Break a SHA-1 keyed MAC using length extension
+  30. Break an MD4 keyed MAC using length extension
+  31. Implement and break HMAC-SHA1 with an artificial timing leak
+  32. Break HMAC-SHA1 with a slightly less artificial timing leak
+
+** 25. Break "random access read/write" AES CTR
+
+Back to CTR. Encrypt the recovered plaintext from this file (the ECB
+exercise) under CTR with a random key (for this exercise the key should
+be unknown to you, but hold on to it).
+
+Now, write the code that allows you to "seek" into the ciphertext,
+decrypt, and re-encrypt with different plaintext. Expose this as a
+function, like, "edit(ciphertext, key, offet, newtext)".
+
+Imagine the "edit" function was exposed to attackers by means of an API
+call that didn't reveal the key or the original plaintext; the attacker
+has the ciphertext and controls the offset and "new text".
+
+Recover the original plaintext.
+
+Food for thought.
+
+  A folkloric supposed benefit of CTR mode is the ability to easily
+  "seek forward" into the ciphertext; to access byte N of the
+  ciphertext, all you need to be able to do is generate byte N of the
+  keystream. Imagine if you'd relied on that advice to, say, encrypt a
+  disk.
+
+** 26. CTR bitflipping
+
+There are people in the world that believe that CTR resists bit flipping
+attacks of the kind to which CBC mode is susceptible.
+
+Re-implement the CBC bitflipping exercise from earlier (Challenge 16) to
+use CTR mode instead of CBC mode. Inject an "admin=true" token.
+
+** 27. Recover the key from CBC with IV=Key
+
+Take your code from the CBC exercise and modify it so that it repurposes
+the key for CBC encryption as the IV.
+
+Applications sometimes use the key as an IV on the auspices that both
+the sender and the receiver have to know the key already, and can save
+some space by using it as both a key and an IV.
+
+Using the key as an IV is insecure; an attacker that can modify
+ciphertext in flight can get the receiver to decrypt a value that will
+reveal the key.
+
+The CBC code from exercise 16 encrypts a URL string. Verify each byte of
+the plaintext for ASCII compliance (ie, look for high-ASCII
+values). Noncompliant messages should raise an exception or return an
+error that includes the decrypted plaintext (this happens all the time
+in real systems, for what it's worth).
+
+Use your code to encrypt a message that is at least 3 blocks long:
+
+  AES-CBC(P_1, P_2, P_3) -> C_1, C_2, C_3
+
+Modify the message (you are now the attacker):
+
+  C_1, C_2, C_3 -> C_1, 0, C_1
+
+Decrypt the message (you are now the receiver) and raise the appropriate
+error if high-ASCII is found.
+
+As the attacker, recovering the plaintext from the error, extract the
+key:
+
+  P'_1 XOR P'_3
+
+** 28. Implement a SHA-1 keyed MAC
+
+Find a SHA-1 implementation in the language you code in.
+
+Don't cheat. It won't work.
+
+  Do not use the SHA-1 implementation your language already provides
+  (for instance, don't use the "Digest" library in Ruby, or call
+  OpenSSL; in Ruby, you'd want a pure-Ruby SHA-1).
+
+Write a function to authenticate a message under a secret key by using a
+secret-prefix MAC, which is simply:
+
+  SHA1(key || message)
+
+Verify that you cannot tamper with the message without breaking the MAC
+you've produced, and that you can't produce a new MAC without knowing
+the secret key.
+
+
+** 29. Break a SHA-1 keyed MAC using length extension
+
+Secret-prefix SHA-1 MACs are trivially breakable.
+
+The attack on secret-prefix SHA1 relies on the fact that you can take
+the ouput of SHA-1 and use it as a new starting point for SHA-1, thus
+taking an arbitrary SHA-1 hash and "feeding it more data".
+
+Since the key precedes the data in secret-prefix, any additional data
+you feed the SHA-1 hash in this fashion will appear to have been hashed
+with the secret key.
+
+To carry out the attack, you'll need to account for the fact that SHA-1
+is "padded" with the bit-length of the message; your forged message will
+need to include that padding. We call this "glue padding". The final
+message you actually forge will be:
+
+  SHA1(key || original-message || glue-padding || new-message)
+
+(where the final padding on the whole constructed message is implied)
+
+Note that to generate the glue padding, you'll need to know the original
+bit length of the message; the message itself is known to the attacker,
+but the secret key isn't, so you'll need to guess at it.
+
+This sounds more complicated than it is in practice.
+
+To implement the attack, first write the function that computes the MD
+padding of an arbitrary message and verify that you're generating the
+same padding that your SHA-1 implementation is using. This should take
+you 5-10 minutes.
+
+Now, take the SHA-1 secret-prefix MAC of the message you want to forge
+--- this is just a SHA-1 hash --- and break it into 32 bit SHA-1
+registers (SHA-1 calls them "a", "b", "c", &c).
+
+Modify your SHA-1 implementation so that callers can pass in new values
+for "a", "b", "c" &c (they normally start at magic numbers). With the
+registers "fixated", hash the additional data you want to forge.
+
+Using this attack, generate a secret-prefix MAC under a secret key
+(choose a random word from /usr/share/dict/words or something) of the
+string:
+
+  "comment1=cooking%20MCs;userdata=foo;comment2=%20like%20a%20pound%20of%20bacon"
+
+Forge a variant of this message that ends with ";admin=true".
+
+This is a very useful attack.
+
+  For instance: Thai Duong and Juliano Rizzo, who got to this attack
+  before we did, used it to break the Flickr API.
+
+
+** 30. Break an MD4 keyed MAC using length extension
+
+Second verse, same as the first, but use MD4 instead of SHA-1. Having
+done this attack once against SHA-1, the MD4 variant should take much
+less time; mostly just the time you'll spend Googling for an
+implementation of MD4.
+
+You're thinking, why did we bother with this?
+
+  Blame Stripe. In their second CTF game, the second-to-last challenge
+  involved breaking an H(k, m) MAC with SHA1. Which meant that SHA1 code
+  was floating all over the Internet. MD4 code, not so much.
+
+
+** 31. Implement and break HMAC-SHA1 with an artificial timing leak
+
+The psuedocode on Wikipedia should be enough. HMAC is very easy.
+
+Using the web framework of your choosing (Sinatra, web.py, whatever),
+write a tiny application that has a URL that takes a "file" argument and
+a "signature" argument, like so:
+
+http://localhost:9000/test?file=foo&signature=46b4ec586117154dacd49d664e5d63fdc88efb51
+
+Have the server generate an HMAC key, and then verify that the
+"signature" on incoming requests is valid for "file", using the "=="
+operator to compare the valid MAC for a file with the "signature"
+parameter (in other words, verify the HMAC the way any normal programmer
+would verify it).
+
+Write a function, call it "insecure_compare", that implements the ==
+operation by doing byte-at-a-time comparisons with early exit (ie,
+return false at the first non-matching byte).
+
+In the loop for "insecure_compare", add a 50ms sleep (sleep 50ms after
+each byte).
+
+Use your "insecure_compare" function to verify the HMACs on incoming
+requests, and test that the whole contraption works. Return a 500 if the
+MAC is invalid, and a 200 if it's OK.
+
+Using the timing leak in this application, write a program that
+discovers the valid MAC for any file.
+
+Why artificial delays?
+
+  Early-exit string compares are probably the most common source of
+  cryptographic timing leaks, but they aren't especially easy to
+  exploit. In fact, many timing leaks (for instance, any in C, C++,
+  Ruby, or Python) probably aren't exploitable over a wide-area network
+  at all. To play with attacking real-world timing leaks, you have to
+  start writing low-level timing code. We're keeping things
+  cryptographic in these challenges.
+
+#+BEGIN_SRC fundamental
+  /*
+
+  The following pseudocode demonstrates how HMAC may be
+  implemented. Blocksize is 64 (bytes) when using one of the following
+  hash functions: SHA-1, MD5, RIPEMD-128/160.
+  ,*/
+
+  function hmac (key, message)
+      if (length(key) > blocksize) then
+          key = hash(key) // keys longer than blocksize are shortened
+      end if
+      if (length(key) < blocksize) then
+          key = key ∥ [0x00 * (blocksize - length(key))] // keys shorter than blocksize are zero-padded (where ∥ is concatenation)
+      end if
+     
+      o_key_pad = [0x5c * blocksize] ⊕ key // Where blocksize is that of the underlying hash function
+      i_key_pad = [0x36 * blocksize] ⊕ key // Where ⊕ is exclusive or (XOR)
+     
+      return hash(o_key_pad ∥ hash(i_key_pad ∥ message)) // Where ∥ is concatenation
+  end function
+
+#+END_SRC
+
+** 32. Break HMAC-SHA1 with a slightly less artificial timing leak
+
+Reduce the sleep in your "insecure_compare" until your previous solution
+breaks. (Try 5ms to start.)
+
+Now break it again.
