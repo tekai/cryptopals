@@ -2,11 +2,27 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include <openssl/evp.h>
 #include <openssl/bio.h>
+#include <openssl/buffer.h>
 
 #include "crypto.h"
+
+/**
+ * convert hex string into data
+ * @param len Length of the hex string
+ */
+void unhex(char * hex, char * out, size_t len) {
+    size_t i;
+    char c[3] = "00";
+    for (i=0;i<len;i+=2) {
+        c[0] = hex[i];
+        c[1] = hex[i+1];
+        out[i/2] = (char) strtol(c, NULL, 16);
+    }
+}
 
 /**
  * Pad a `string' to size using PKCS#7. Assumes `string' has size+1
@@ -28,6 +44,41 @@ int pkcs7_pad(char * string, uint8_t size) {
     string[len+d] = '\0';
 
     return 1;
+}
+
+
+int base64_decode(const unsigned char *inbuf, const int inlen, unsigned char *outbuf, int *outlen) {
+    BIO *bio, *b64;
+
+    bio = BIO_new_mem_buf(inbuf, inlen);
+    b64 = BIO_new(BIO_f_base64());
+    bio = BIO_push(b64, bio);
+
+    *outlen = BIO_read(bio, outbuf, inlen);
+
+    BIO_free_all(bio);
+
+    return 1;
+}
+
+int base64_encode(const char* inbuf, const size_t length, char** out) { //Encodes a binary safe base 64 string
+	BIO *bio, *b64;
+	BUF_MEM *bufferPtr;
+
+	b64 = BIO_new(BIO_f_base64());
+	bio = BIO_new(BIO_s_mem());
+	bio = BIO_push(b64, bio);
+
+	/* BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); //Ignore newlines - write everything in one line */
+	BIO_write(bio, inbuf, length);
+	BIO_flush(bio);
+	BIO_get_mem_ptr(bio, &bufferPtr);
+	BIO_set_close(bio, BIO_NOCLOSE);
+	BIO_free_all(bio);
+
+	*out=(*bufferPtr).data;
+
+	return (0); //success
 }
 
 /**
@@ -83,18 +134,4 @@ int do_crypt(FILE *in, FILE *out, int do_encrypt) {
 
     EVP_CIPHER_CTX_cleanup(&ctx);
     return 0;
-}
-
-int base64_decode(const unsigned char *inbuf, const int inlen, unsigned char *outbuf, int *outlen) {
-    BIO *bio, *b64;
-
-    bio = BIO_new_mem_buf(inbuf, inlen);
-    b64 = BIO_new(BIO_f_base64());
-    bio = BIO_push(b64, bio);
-
-    *outlen = BIO_read(bio, outbuf, inlen);
-
-    BIO_free_all(bio);
-
-    return 1;
 }
