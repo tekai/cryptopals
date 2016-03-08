@@ -17,4 +17,4 @@ challenge-%: challenge-%.c
 .PHONY: clean
 
 clean:
-	rm -f challenge-7 challenge-8
+	rm -f challenge-7 challenge-8 *.o
