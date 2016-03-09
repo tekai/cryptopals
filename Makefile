@@ -11,6 +11,8 @@ all:
 challenge-%: challenge-%.o crypto.o
 	$(CC) $(CFLAGS) $(LIBS) -o $@ $^
 
+test: test.o crypto.o
+	$(CC) $(CFLAGS) $(LIBS) -o $@ $^
 
 .PHONY: clean
 
