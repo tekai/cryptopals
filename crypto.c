@@ -172,3 +172,76 @@ int do_crypt(FILE *in, FILE *out, int do_encrypt) {
     EVP_CIPHER_CTX_cleanup(&ctx);
     return 0;
 }
+
+/**
+ * Apply encryption to in file, put result in out file
+ *
+ * @param in input
+ * @param out output
+ * @param do_encrypt encrypt?
+ */
+int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
+    /* Allow enough space in output buffer for additional block */
+    const uint8_t BLOCK_SIZE = 16;
+    uint8_t inbuf[BLOCK_SIZE], outbuf[BLOCK_SIZE + EVP_MAX_BLOCK_LENGTH];
+    int inlen, outlen;
+    EVP_CIPHER_CTX ctx;
+
+    /* Bogus key and IV: we'd normally set these from
+     * another source.
+     */
+    uint8_t key[] = "YELLOW SUBMARINE";
+    uint8_t iv[]  = {
+        '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0',
+        '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0',
+    };
+    uint8_t last[BLOCK_SIZE];
+    memcpy(last, iv, BLOCK_SIZE);
+    /* Don't set key or IV right away; we want to check lengths */
+    EVP_CIPHER_CTX_init(&ctx);
+    EVP_CipherInit_ex(&ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
+        do_encrypt);
+    EVP_CIPHER_CTX_set_key_length(&ctx, 16);
+    /* EVP_CIPHER_CTX_set_iv_length(&ctx, 16); */
+    OPENSSL_assert(EVP_CIPHER_CTX_key_length(&ctx) == 16);
+    // assert fails, dunno why nor if it's necessary
+    /* printf("%d\n", EVP_CIPHER_CTX_iv_length(&ctx)); */
+    /* OPENSSL_assert(EVP_CIPHER_CTX_iv_length(&ctx) == 16); */
+
+    /* Now we can set key and IV */
+    EVP_CipherInit_ex(&ctx, NULL, NULL, key, iv, do_encrypt);
+
+
+    for(;;)  {
+        inlen = fread(inbuf, 1, BLOCK_SIZE, in);
+        if(inlen <= 0) break;
+        if (do_encrypt) {
+            arr_xor(inbuf, last, BLOCK_SIZE);
+        }
+        if(!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, inlen)) {
+            /* Error */
+            EVP_CIPHER_CTX_cleanup(&ctx);
+            return 1;
+        }
+        if (do_encrypt) {
+            memcpy(last, outbuf, BLOCK_SIZE);
+        }
+        if (!do_encrypt) {
+            arr_xor(outbuf, last, BLOCK_SIZE);
+            memcpy(last, inbuf, BLOCK_SIZE);
+        }
+        fwrite(outbuf, 1, outlen, out);
+    }
+    if(!EVP_CipherFinal_ex(&ctx, outbuf, &outlen)) {
+        /* Error */
+        EVP_CIPHER_CTX_cleanup(&ctx);
+        return 1;
+    }
+    if (!do_encrypt) {
+        /* arr_xor(outbuf, last, BLOCK_SIZE); */
+    }
+    fwrite(outbuf, 1, outlen, out);
+
+    EVP_CIPHER_CTX_cleanup(&ctx);
+    return 0;
+}
