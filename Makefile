@@ -17,4 +17,4 @@ test: test.o crypto.o
 .PHONY: clean
 
 clean:
-	rm -f challenge-? *.o
+	rm -f challenge-? challenge-1? *.o
