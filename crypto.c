@@ -46,8 +46,15 @@ int pkcs7_pad(char * string, uint8_t size) {
     return 1;
 }
 
-
-int base64_decode(const unsigned char *inbuf, const int inlen, unsigned char *outbuf, int *outlen) {
+/**
+ * Decode Base64 using OpenSSL
+ *
+ * @param inbuf input string
+ * @param inlen length the input
+ * @param outbuf byte array for the output
+ * @param outlen length of the output
+ */
+int base64_decode(const unsigned char *inbuf, const int inlen, uint8_t *outbuf, int *outlen) {
     BIO *bio, *b64;
 
     bio = BIO_new_mem_buf(inbuf, inlen);
@@ -61,7 +68,16 @@ int base64_decode(const unsigned char *inbuf, const int inlen, unsigned char *ou
     return 1;
 }
 
-int base64_encode(const char* inbuf, const size_t length, char** out) { //Encodes a binary safe base 64 string
+
+/**
+ * Encode Base64 using OpenSSL
+ *
+ * @param inbuf input byte array
+ * @param length the input
+ * @param outbuf byte array for the output
+ * @param out pointer to output, copy to use the data
+ */
+int base64_encode(const uint8_t *inbuf, const size_t length, char** out) {
 	BIO *bio, *b64;
 	BUF_MEM *bufferPtr;
 
