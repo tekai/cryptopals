@@ -31,14 +31,23 @@ void unhex(char * hex, uint8_t * out, size_t len) {
 void dohex(uint8_t * raw, char * out, size_t len) {
     size_t i;
     for (i=0;i<len;i++) {
-        printf("%lu, %lu, %x\n", i, i*2, raw[i]);
         sprintf(out+(i*2), "%x", raw[i]);
     }
 }
 
 /**
+ * xor dest with src
+ */
+void arr_xor(uint8_t * dest, uint8_t * src, size_t len) {
+    size_t i;
+    for (i=0;i<len;i++) {
+        dest[i] = dest[i] ^ src[i];
+    }
+}
+
+/**
  * Pad a `string' to size using PKCS#7. Assumes `string' has size+1
- * space left for padding data and is at most `size' long. 
+ * space left for padding data and is at most `size' long.
  *
  * @param str String to be padded
  * @param size pad size
