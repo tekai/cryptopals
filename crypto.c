@@ -14,7 +14,7 @@
  * convert hex string into data
  * @param len Length of the hex string
  */
-void unhex(char * hex, char * out, size_t len) {
+void unhex(char * hex, uint8_t * out, size_t len) {
     size_t i;
     char c[3] = "00";
     for (i=0;i<len;i+=2) {
