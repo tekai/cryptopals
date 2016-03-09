@@ -25,6 +25,18 @@ void unhex(char * hex, uint8_t * out, size_t len) {
 }
 
 /**
+ * @param
+ * @param len length of raw
+ */
+void dohex(uint8_t * raw, char * out, size_t len) {
+    size_t i;
+    for (i=0;i<len;i++) {
+        printf("%lu, %lu, %x\n", i, i*2, raw[i]);
+        sprintf(out+(i*2), "%x", raw[i]);
+    }
+}
+
+/**
  * Pad a `string' to size using PKCS#7. Assumes `string' has size+1
  * space left for padding data and is at most `size' long. 
  *
