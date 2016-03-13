@@ -180,9 +180,10 @@ int do_crypt(FILE *in, FILE *out, int do_encrypt) {
  */
 int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
     /* Allow enough space in output buffer for additional block */
+    /* AES block size is 128 bits = 16 bytes*/
     const uint8_t BLOCK_SIZE = 16;
     uint8_t inbuf[BLOCK_SIZE], outbuf[BLOCK_SIZE + EVP_MAX_BLOCK_LENGTH];
-    int inlen, outlen;
+    int inlen, outlen=0;
     EVP_CIPHER_CTX ctx;
 
     /* Bogus key and IV: we'd normally set these from
@@ -208,15 +209,29 @@ int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
 
     /* Now we can set key and IV */
     EVP_CipherInit_ex(&ctx, NULL, NULL, key, iv, do_encrypt);
-
+    // disable padding, so CipherUpdate does output sth.
+    EVP_CIPHER_CTX_set_padding(&ctx, 0);
 
     for(;;)  {
         inlen = fread(inbuf, 1, BLOCK_SIZE, in);
-        if(inlen <= 0) break;
+        if (outlen > 0) {
+            if (!do_encrypt && inlen <= 0) {
+                uint8_t p = outbuf[outlen-1];
+                outlen = outlen - (int) p;
+            }
+            fwrite(outbuf, 1, outlen, out);
+        }
+
+        if (inlen <= 0) {
+            break;
+        }
         if (do_encrypt) {
+            if (inlen < BLOCK_SIZE) {
+                pkcs7_pad(inbuf, inlen, BLOCK_SIZE);
+            }
             arr_xor(inbuf, last, BLOCK_SIZE);
         }
-        if(!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, inlen)) {
+        if(!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, BLOCK_SIZE)) {
             /* Error */
             EVP_CIPHER_CTX_cleanup(&ctx);
             return 1;
@@ -228,18 +243,17 @@ int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
             arr_xor(outbuf, last, BLOCK_SIZE);
             memcpy(last, inbuf, BLOCK_SIZE);
         }
-        fwrite(outbuf, 1, outlen, out);
     }
     if(!EVP_CipherFinal_ex(&ctx, outbuf, &outlen)) {
         /* Error */
         EVP_CIPHER_CTX_cleanup(&ctx);
         return 1;
     }
-    if (!do_encrypt) {
-        /* arr_xor(outbuf, last, BLOCK_SIZE); */
+    if (outlen > 0) {
+        fprintf(stderr, "something went wrong\n");
+        EVP_CIPHER_CTX_cleanup(&ctx);
+        return 1;
     }
-    fwrite(outbuf, 1, outlen, out);
-
     EVP_CIPHER_CTX_cleanup(&ctx);
     return 0;
 }
