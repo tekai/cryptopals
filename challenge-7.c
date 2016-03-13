@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
     // OUTPUT
     if (argc > 2) {
         if( access( argv[2], R_OK ) != -1 ) {
-            out = fopen(argv[2], "r");
+            out = fopen(argv[2], "w");
         } else {
             fprintf(stderr, "Can't open output: %s\n", argv[1]);
             return 1;

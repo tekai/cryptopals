@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     // OUTPUT
     if (argc > f_start+1) {
         if( access( argv[f_start+1], R_OK ) != -1 ) {
-            out = fopen(argv[f_start+1], "r");
+            out = fopen(argv[f_start+1], "w");
         } else {
             fprintf(stderr, "Can't open output: %s\n", argv[2]);
             return 1;
