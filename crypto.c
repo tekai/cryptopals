@@ -49,21 +49,19 @@ void arr_xor(uint8_t * dest, uint8_t * src, size_t len) {
  * Pad a `string' to size using PKCS#7. Assumes `string' has size+1
  * space left for padding data and is at most `size' long.
  *
- * @param str String to be padded
+ * @param str Data to be padded
+ * @param arrlen length of the data
  * @param size pad size
  */
-int pkcs7_pad(char * string, uint8_t size) {
-    uint8_t len = strlen(string);
-    int d = size - len;
+int pkcs7_pad(uint8_t * arr, uint8_t arrlen, uint8_t padlen) {
+    int d = padlen - arrlen;
     uint8_t i;
     if (d<0) {
         return -1;
     }
     for (i=0;i<d;i++) {
-        string[len+i] = d;
+        arr[arrlen+i] = d;
     }
-    string[len+d] = '\0';
-
     return 1;
 }
 
