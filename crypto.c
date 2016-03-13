@@ -183,7 +183,7 @@ int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
     /* AES block size is 128 bits = 16 bytes*/
     const uint8_t BLOCK_SIZE = 16;
     uint8_t inbuf[BLOCK_SIZE], outbuf[BLOCK_SIZE + EVP_MAX_BLOCK_LENGTH];
-    int inlen, outlen=0;
+    int inlen, outlen=0,padded=0;
     EVP_CIPHER_CTX ctx;
 
     /* Bogus key and IV: we'd normally set these from
@@ -228,10 +228,11 @@ int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
         if (do_encrypt) {
             if (inlen < BLOCK_SIZE) {
                 pkcs7_pad(inbuf, inlen, BLOCK_SIZE);
+                padded = 1;
             }
             arr_xor(inbuf, last, BLOCK_SIZE);
         }
-        if(!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, BLOCK_SIZE)) {
+        if (!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, BLOCK_SIZE)) {
             /* Error */
             EVP_CIPHER_CTX_cleanup(&ctx);
             return 1;
@@ -239,10 +240,21 @@ int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
         if (do_encrypt) {
             memcpy(last, outbuf, BLOCK_SIZE);
         }
-        if (!do_encrypt) {
+        else {
             arr_xor(outbuf, last, BLOCK_SIZE);
             memcpy(last, inbuf, BLOCK_SIZE);
         }
+    }
+    // if there's been no padding, add a whole block of padding
+    if (do_encrypt && !padded) {
+        pkcs7_pad(inbuf, 0, BLOCK_SIZE);
+        arr_xor(inbuf, last, BLOCK_SIZE);
+        if (!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, BLOCK_SIZE)) {
+            /* Error */
+            EVP_CIPHER_CTX_cleanup(&ctx);
+            return 1;
+        }
+        fwrite(outbuf, 1, outlen, out);
     }
     if(!EVP_CipherFinal_ex(&ctx, outbuf, &outlen)) {
         /* Error */
