@@ -179,6 +179,23 @@ int do_crypt(FILE *in, FILE *out, int do_encrypt) {
  * @param do_encrypt encrypt?
  */
 int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
+    uint8_t key[] = "YELLOW SUBMARINE";
+    uint8_t iv[]  = {
+        '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0',
+        '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0',
+    };
+
+    return aes_128_cbc(in, out, do_encrypt, key, iv);
+}
+
+/**
+ * Apply encryption to in file, put result in out file
+ *
+ * @param in input
+ * @param out output
+ * @param do_encrypt encrypt?
+ */
+int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) {
     /* Allow enough space in output buffer for additional block */
     /* AES block size is 128 bits = 16 bytes*/
     const uint8_t BLOCK_SIZE = 16;
@@ -189,11 +206,6 @@ int aes_cbc(FILE *in, FILE *out, int do_encrypt) {
     /* Bogus key and IV: we'd normally set these from
      * another source.
      */
-    uint8_t key[] = "YELLOW SUBMARINE";
-    uint8_t iv[]  = {
-        '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0',
-        '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0', '\x0',
-    };
     uint8_t last[BLOCK_SIZE];
     memcpy(last, iv, BLOCK_SIZE);
     /* Don't set key or IV right away; we want to check lengths */

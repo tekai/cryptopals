@@ -9,5 +9,6 @@ int base64_decode(const unsigned char *, const int, uint8_t *, int *);
 int base64_encode(const uint8_t *, const size_t, char**);
 int do_crypt(FILE *, FILE *, int);
 int aes_cbc(FILE *, FILE *, int);
+int aes_128_cbc(FILE *, FILE *, int, uint8_t *, uint8_t *);
 
 #endif /* CRYPTO_H */
