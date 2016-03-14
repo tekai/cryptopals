@@ -8,7 +8,7 @@ all:
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-challenge-%: challenge-%.o crypto.o
+challenge-%: challenge-%.o crypto.o fmemopen.o
 	$(CC) $(CFLAGS) $(LIBS) -o $@ $^
 
 test: test.o crypto.o
