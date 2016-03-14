@@ -93,7 +93,6 @@ int base64_decode(const unsigned char *inbuf, const int inlen, uint8_t *outbuf, 
  *
  * @param inbuf input byte array
  * @param length the input
- * @param outbuf byte array for the output
  * @param out pointer to output, copy to use the data
  */
 int base64_encode(const uint8_t *inbuf, const size_t length, char** out) {
@@ -114,6 +113,45 @@ int base64_encode(const uint8_t *inbuf, const size_t length, char** out) {
 	*out=(*bufferPtr).data;
 
 	return (0); //success
+}
+
+
+int aes_128_ecb(FILE *in, FILE *out, int do_encrypt, uint8_t *key) {
+    /* Allow enough space in output buffer for additional block */
+    unsigned char inbuf[1024], outbuf[1024 + EVP_MAX_BLOCK_LENGTH];
+    int inlen, outlen;
+    EVP_CIPHER_CTX ctx;
+
+    /* Don't set key right away; we want to check lengths */
+    EVP_CIPHER_CTX_init(&ctx);
+    EVP_CipherInit_ex(&ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
+        do_encrypt);
+
+    OPENSSL_assert(EVP_CIPHER_CTX_key_length(&ctx) == 16);
+
+    /* Now we can set key*/
+    EVP_CipherInit_ex(&ctx, NULL, NULL, key, NULL, do_encrypt);
+
+
+    for(;;)  {
+        inlen = fread(inbuf, 1, 1024, in);
+        if(inlen <= 0) break;
+        if(!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, inlen)) {
+            /* Error */
+            EVP_CIPHER_CTX_cleanup(&ctx);
+            return 1;
+        }
+        fwrite(outbuf, 1, outlen, out);
+    }
+    if(!EVP_CipherFinal_ex(&ctx, outbuf, &outlen)) {
+        /* Error */
+        EVP_CIPHER_CTX_cleanup(&ctx);
+        return 1;
+    }
+    fwrite(outbuf, 1, outlen, out);
+
+    EVP_CIPHER_CTX_cleanup(&ctx);
+    return 0;
 }
 
 /**
@@ -142,8 +180,6 @@ int do_crypt(FILE *in, FILE *out, int do_encrypt) {
         do_encrypt);
 
     OPENSSL_assert(EVP_CIPHER_CTX_key_length(&ctx) == 16);
-    // assert fails, dunno why nor if it's necessary
-    /* OPENSSL_assert(EVP_CIPHER_CTX_iv_length(&ctx) == 16); */
 
     /* Now we can set key and IV */
     EVP_CipherInit_ex(&ctx, NULL, NULL, key, iv, do_encrypt);
@@ -213,11 +249,7 @@ int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) 
     EVP_CipherInit_ex(&ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
         do_encrypt);
     EVP_CIPHER_CTX_set_key_length(&ctx, 16);
-    /* EVP_CIPHER_CTX_set_iv_length(&ctx, 16); */
     OPENSSL_assert(EVP_CIPHER_CTX_key_length(&ctx) == 16);
-    // assert fails, dunno why nor if it's necessary
-    /* printf("%d\n", EVP_CIPHER_CTX_iv_length(&ctx)); */
-    /* OPENSSL_assert(EVP_CIPHER_CTX_iv_length(&ctx) == 16); */
 
     /* Now we can set key and IV */
     EVP_CipherInit_ex(&ctx, NULL, NULL, key, iv, do_encrypt);
@@ -280,4 +312,23 @@ int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) 
     }
     EVP_CIPHER_CTX_cleanup(&ctx);
     return 0;
+}
+
+unsigned int detect_ecb(byte *buf, size_t length) {
+    uint8_t BLOCK_SIZE = 16;
+    size_t chunks;
+    unsigned int ecb = 0;
+    size_t i,j,h;
+
+    chunks = length/BLOCK_SIZE;
+    for (i=0;i < chunks-1; i++) {
+        h = 0;
+        for (j=i+1; j < chunks; j++) {
+            if (bcmp(buf + i*BLOCK_SIZE, buf + j*BLOCK_SIZE, BLOCK_SIZE) == 0) {
+                ecb++;
+            }
+        }
+    }
+
+    return ecb;
 }
