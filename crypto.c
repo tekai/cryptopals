@@ -31,7 +31,7 @@ void unhex(char * hex, uint8_t * out, size_t len) {
 void dohex(uint8_t * raw, char * out, size_t len) {
     size_t i;
     for (i=0;i<len;i++) {
-        sprintf(out+(i*2), "%x", raw[i]);
+        sprintf(out+(i*2), "%02x", raw[i]);
     }
 }
 
