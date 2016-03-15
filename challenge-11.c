@@ -11,10 +11,13 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
     uint8_t key[16];
     uint8_t iv[16];
 
-    int padl = rand() % 6 + 5;
-    int padr = rand() % 6 + 5;
-    uint8_t * inbuf = malloc((inlen+padr+padl)*sizeof(uint8_t));
-    FILE *s_in  = fmemopen(in, inlen, "r");
+    size_t padl = rand() % 6 + 5;
+    size_t padr = rand() % 6 + 5;
+    size_t inbuflen = (inlen+padr+padl);
+    uint8_t *inbuf = malloc(inbuflen*sizeof(uint8_t));
+    arc4random_buf(inbuf, inbuflen);
+    memcpy(inbuf+padl, in, inlen);
+    FILE *s_in  = fmemopen(inbuf, inlen, "r");
     FILE *s_out = fmemopen(out, *outlen, "w");
     *outlen = inlen;
     if (inlen % 16 == 0) {
@@ -26,14 +29,17 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
     arc4random_buf(key, 16);
 
     if (rand()%2) {
+        puts("Using ECB...");
         aes_128_ecb(s_in, s_out, 1, key);
     }
     else {
+        puts("Using CBC...");
         arc4random_buf(iv, 16);
         aes_128_cbc(s_in, s_out, 1, key, iv);
     }
     fclose(s_in);
     fclose(s_out);
+    free(inbuf);
     return 1;
 }
 
@@ -41,10 +47,11 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
 
 int main(int argc, char** argv) {
     sranddev();
-    /* uint8_t data[] = "Du bist so dumm, du bringst sogar deinem eigenem Hund die Zeitung"; */
+
     uint8_t data[] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-    size_t inlen=strlen((char*)data);
-    size_t outlen=(inlen+20+16)*sizeof(uint8_t);
+    size_t inlen  = strlen((char*)data);
+    // max extra data from oracle, plus 1 block of padding
+    size_t outlen = (inlen+20+16)*sizeof(uint8_t);
 
     uint8_t *out;
     out = calloc(1, outlen);
