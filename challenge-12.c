@@ -28,7 +28,7 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
     memcpy(inbuf, in, inlen);
     memcpy(inbuf+inlen, buf, b64len);
 
-    s_in  = fmemopen(inbuf, inlen, "r");
+    s_in  = fmemopen(inbuf, inlen+b64len, "r");
     s_out = fmemopen(out, *outlen, "w");
     aes_128_ecb(s_in, s_out, 1, key);
 
