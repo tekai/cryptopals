@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     uint8_t *out;
     out = calloc(1, outlen);
     oracle(data, inlen, out, &outlen);
-    if (detect_ecb(out, outlen)) {
+    if (detect_ecb(out, outlen, 16)) {
         puts("ECB was used");
     }
     else {

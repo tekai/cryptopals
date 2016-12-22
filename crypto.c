@@ -317,17 +317,22 @@ int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) 
     return 0;
 }
 
-unsigned int detect_ecb(byte *buf, size_t length) {
-    uint8_t BLOCK_SIZE = 16;
+/**
+ * Detect if ECB encryption was used
+ * @param buf encrypted data
+ * @param length of encrypted data
+ * @param block_size which was used
+ */
+unsigned int detect_ecb(byte *buf, size_t length, uint8_t block_size) {
     size_t chunks;
     unsigned int ecb = 0;
     size_t i,j,h;
 
-    chunks = length/BLOCK_SIZE;
+    chunks = length/block_size;
     for (i=0;i < chunks-1; i++) {
         h = 0;
         for (j=i+1; j < chunks; j++) {
-            if (bcmp(buf + i*BLOCK_SIZE, buf + j*BLOCK_SIZE, BLOCK_SIZE) == 0) {
+            if (bcmp(buf + i*block_size, buf + j*block_size, block_size) == 0) {
                 ecb++;
             }
         }
