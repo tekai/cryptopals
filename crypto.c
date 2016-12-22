@@ -11,7 +11,10 @@
 #include "crypto.h"
 
 /**
- * convert hex string into data
+ * Convert hex string into data
+ *
+ * @param hex input hex data
+ * @param out output buffer
  * @param len Length of the hex string
  */
 void unhex(char * hex, uint8_t * out, size_t len) {
