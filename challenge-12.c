@@ -83,33 +83,39 @@ int main(int argc, char** argv) {
     }
     if (ok) {
         sprintf(format, "\ndata: %%1.%zus\n", block_size);
-        j = block_size-1;
-
-        // generate data to search for
-        oracle(data, block_size-1, out, &outlen);
-
-        // store search
         search = calloc(block_size, sizeof(uint8_t));
-        memcpy(search, out, block_size);
 
-        // try each ascii char & cmp with search
-        uint8_t c=0;
-        for (c=48; c < 128; c++) {
+        uint8_t k;
+        for (j = block_size-1; j > 0; j--) {
+            k = block_size - 1;
+            // generate data to search for
+            oracle(data, j, out, &outlen);
 
-            // modify data to contain current char
-            data[j] = c;
-            /* printf(format, data); */
+            // store search
+            memcpy(search, out, block_size);
 
-            // encrypt
-            oracle(data, block_size, out, &outlen);
+            // try each ascii char & cmp with search
+            uint8_t c=0;
+            for (c=1; c < 128; c++) {
 
-            // compare
-            if (memcmp(search, out, block_size) == 0
-                    || search[j] == out[j]) {
-                printf("char: %c, %d\n", c, c);
-                break;
+                // modify data to contain current char
+                data[k] = c;
+                /* printf(format, data); */
+
+                // encrypt
+                oracle(data, block_size, out, &outlen);
+
+                // compare
+                if (memcmp(search, out, block_size) == 0) {
+                    printf("%c", c, c);
+                    for (k=j;k<block_size;k++) {
+                        data[k-1] = data[k];
+                    }
+                    break;
+                }
             }
         }
+        printf("\n");
 
         free(search);
     }
