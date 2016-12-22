@@ -19,9 +19,10 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
         "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\n"
         "YnkK";
 
-    unhex("d9a6ef8423d06d3fc69795e75494114a", key, 16);
 
     base64_decode(b64, strlen(b64), buf, &b64len);
+
+    unhex("d9a6ef8423d06d3fc69795e75494114a", key, 16);
 
     uint8_t *inbuf = malloc((inlen+b64len)*sizeof(uint8_t));
 
@@ -56,29 +57,62 @@ unsigned int detect_block_size(byte *buf, size_t length) {
 
 
 int main(int argc, char** argv) {
-    sranddev();
 
-    uint8_t data[] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    uint8_t data[] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    uint8_t format[] = "AAAAAAAAAAAAAAAA";
     size_t inlen  = strlen((char*)data);
     // max extra data from oracle, plus 1 block of padding
     size_t outlen = 8192;
     size_t block_size = 0;
-    size_t i;
+    size_t i, j;
     uint8_t *out;
+    uint8_t *search;
+    uint8_t ok = 0;
+
     out = calloc(outlen, sizeof(uint8_t));
 
-    for (i=2;i < floor(outlen/2); i++) {
-        oracle(data, inlen, out, &outlen);
+    for (i=1;i < inlen/2; i++) {
+        oracle(data, 2*i, out, &outlen);
         block_size = detect_block_size(out, outlen);
-        if (block_size > 0) {
+        if (block_size > 0
+                && detect_ecb(out, outlen, block_size)) {
+            ok = 1;
             printf("block size: %zu\n", block_size);
             break;
         }
-        else {
-            puts("bad block size");
-        }
     }
+    if (ok) {
+        sprintf(format, "\ndata: %%1.%zus\n", block_size);
+        j = block_size-1;
 
+        // generate data to search for
+        oracle(data, block_size-1, out, &outlen);
+
+        // store search
+        search = calloc(block_size, sizeof(uint8_t));
+        memcpy(search, out, block_size);
+
+        // try each ascii char & cmp with search
+        uint8_t c=0;
+        for (c=48; c < 128; c++) {
+
+            // modify data to contain current char
+            data[j] = c;
+            /* printf(format, data); */
+
+            // encrypt
+            oracle(data, block_size, out, &outlen);
+
+            // compare
+            if (memcmp(search, out, block_size) == 0
+                    || search[j] == out[j]) {
+                printf("char: %c, %d\n", c, c);
+                break;
+            }
+        }
+
+        free(search);
+    }
     /* char * hex = malloc((outlen*2+1)*sizeof(char)); */
     /* hex[outlen*2] = '\0'; */
     /* dohex(out, hex, outlen); */
