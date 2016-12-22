@@ -18,4 +18,4 @@ test: test.o crypto.o
 .PRECIOUS: %.o
 
 clean:
-	rm -f challenge-? challenge-1? *.o *.dSYM
+	rm -rf challenge-? challenge-1? *.o *.dSYM
