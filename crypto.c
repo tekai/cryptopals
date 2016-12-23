@@ -119,7 +119,7 @@ int base64_encode(const uint8_t *inbuf, const size_t length, char** out) {
 }
 
 
-int aes_128_ecb(FILE *in, FILE *out, int do_encrypt, uint8_t *key) {
+int aes_128_ecb(FILE *in, FILE *out, int do_encrypt, uint8_t *key, size_t *datalen) {
     /* Allow enough space in output buffer for additional block */
     unsigned char inbuf[1024], outbuf[1024 + EVP_MAX_BLOCK_LENGTH];
     int inlen, outlen;
@@ -135,7 +135,7 @@ int aes_128_ecb(FILE *in, FILE *out, int do_encrypt, uint8_t *key) {
     /* Now we can set key*/
     EVP_CipherInit_ex(&ctx, NULL, NULL, key, NULL, do_encrypt);
 
-
+    *datalen = 0;
     for(;;)  {
         inlen = fread(inbuf, 1, 1024, in);
         if(inlen <= 0) break;
@@ -144,6 +144,7 @@ int aes_128_ecb(FILE *in, FILE *out, int do_encrypt, uint8_t *key) {
             EVP_CIPHER_CTX_cleanup(&ctx);
             return 1;
         }
+        *datalen += outlen;
         fwrite(outbuf, 1, outlen, out);
     }
     if(!EVP_CipherFinal_ex(&ctx, outbuf, &outlen)) {
@@ -151,9 +152,12 @@ int aes_128_ecb(FILE *in, FILE *out, int do_encrypt, uint8_t *key) {
         EVP_CIPHER_CTX_cleanup(&ctx);
         return 1;
     }
+    *datalen += outlen;
     fwrite(outbuf, 1, outlen, out);
 
     EVP_CIPHER_CTX_cleanup(&ctx);
+
+
     return 0;
 }
 

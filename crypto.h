@@ -12,7 +12,7 @@ int base64_encode(const uint8_t *, const size_t, char**);
 int do_crypt(FILE *, FILE *, int);
 int aes_cbc(FILE *, FILE *, int);
 int aes_128_cbc(FILE *, FILE *, int, uint8_t *, uint8_t *);
-int aes_128_ecb(FILE *, FILE *, int, uint8_t *);
+int aes_128_ecb(FILE *, FILE *, int, uint8_t *, size_t *);
 unsigned int detect_ecb(byte *, size_t, uint8_t);
 
 #endif /* CRYPTO_H */

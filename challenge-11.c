@@ -19,6 +19,7 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
     memcpy(inbuf+padl, in, inlen);
     FILE *s_in  = fmemopen(inbuf, inlen, "r");
     FILE *s_out = fmemopen(out, *outlen, "w");
+    size_t datalen = 0;
     *outlen = inlen;
     if (inlen % 16 == 0) {
         *outlen += 16;
@@ -30,7 +31,7 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
 
     if (rand()%2) {
         puts("Using ECB...");
-        aes_128_ecb(s_in, s_out, 1, key);
+        aes_128_ecb(s_in, s_out, 1, key, &datalen);
     }
     else {
         puts("Using CBC...");
