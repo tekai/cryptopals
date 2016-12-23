@@ -11,34 +11,54 @@
 int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
     uint8_t buf[8192];
     uint8_t key[16];
-    size_t b64len = 0;
+    uint8_t *inbuf;
     FILE *s_in, *s_out;
+    size_t b64len = 0;
+    // base64 encoded padding data for the challenge
     const unsigned char b64[] =
         "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg\n"
         "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq\n"
         "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\n"
         "YnkK";
 
-
+    // decode into buf
     base64_decode(b64, strlen(b64), buf, &b64len);
 
+    // some key ... should be random
     unhex("d9a6ef8423d06d3fc69795e75494114a", key, 16);
 
-    uint8_t *inbuf = malloc((inlen+b64len)*sizeof(uint8_t));
+    // input buffer for encryption
+    inbuf = malloc((inlen+b64len)*sizeof(uint8_t));
 
+    // copy data & padding into inbuf
     memcpy(inbuf, in, inlen);
     memcpy(inbuf+inlen, buf, b64len);
 
+    // open in & out as file pointers
     s_in  = fmemopen(inbuf, inlen+b64len, "r");
     s_out = fmemopen(out, *outlen, "w");
+
+    // encrypt
     aes_128_ecb(s_in, s_out, 1, key);
 
+    // clean up
     fclose(s_in);
     fclose(s_out);
+    free(inbuf);
 
     return 1;
 }
 
+/**
+ * Detect the minimal block size of ECB. The input contains at the start
+ * two neighbouring blocks with the same data. Determine the size of the
+ * block.
+ *
+ * @param buf input
+ * @param length of the input
+ *
+ * @returns block size or 0
+ */
 unsigned int detect_block_size(byte *buf, size_t length) {
     uint8_t BLOCK_SIZE = 0;
     size_t max_size = floor((length/2));
@@ -59,7 +79,7 @@ unsigned int detect_block_size(byte *buf, size_t length) {
 int main(int argc, char** argv) {
 
     uint8_t data[] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-    uint8_t format[] = "AAAAAAAAAAAAAAAA";
+    char format[] = "AAAAAAAAAAAAAAAA";
     size_t inlen  = strlen((char*)data);
     // max extra data from oracle, plus 1 block of padding
     size_t outlen = 8192;
@@ -107,7 +127,7 @@ int main(int argc, char** argv) {
 
                 // compare
                 if (memcmp(search, out, block_size) == 0) {
-                    printf("%c", c, c);
+                    printf("%c", c);
                     for (k=j;k<block_size;k++) {
                         data[k-1] = data[k];
                     }
