@@ -359,7 +359,7 @@ Remember that the problem with ECB is that it is stateless and
 deterministic; the same 16 byte plaintext block will always produce
 the same 16 byte ciphertext.
 
-* TODO Set 2 [3/8]
+* TODO Set 2 [4/8]
 This is the first of several sets on block cipher cryptography. This is
 bread-and-butter crypto, the kind you'll see implemented in most web
 software that does crypto.
@@ -512,7 +512,8 @@ Detect the block cipher mode the function is using each time. You should
 end up with a piece of code that, pointed at a block box that might be
 encrypting ECB or CBC, tells you which one is happening.
 
-** TODO 12. Byte-at-a-time ECB decryption (Simple)
+** DONE 12. Byte-at-a-time ECB decryption (Simple)
+   CLOSED: [2016-12-23 Fri 11:45]
 
 Copy your oracle function to a new function that encrypts buffers under
 ECB mode using a consistent but unknown key (for instance, assign a

@@ -8,7 +8,7 @@
 #include "crypto.h"
 #include "fmemopen.h"
 
-int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
+int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t outlen, size_t * enclen) {
     uint8_t buf[8192];
     uint8_t key[16];
     uint8_t *inbuf;
@@ -36,10 +36,10 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
 
     // open in & out as file pointers
     s_in  = fmemopen(inbuf, inlen+b64len, "r");
-    s_out = fmemopen(out, *outlen, "w");
+    s_out = fmemopen(out, outlen, "w");
 
     // encrypt
-    aes_128_ecb(s_in, s_out, 1, key);
+    aes_128_ecb(s_in, s_out, 1, key, enclen);
 
     // clean up
     fclose(s_in);
@@ -78,11 +78,11 @@ unsigned int detect_block_size(byte *buf, size_t length) {
 
 int main(int argc, char** argv) {
 
-    uint8_t data[] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-    char format[] = "AAAAAAAAAAAAAAAA";
-    size_t inlen  = strlen((char*)data);
+    uint8_t * data = NULL;
+    size_t inlen;
     // max extra data from oracle, plus 1 block of padding
     size_t outlen = 8192;
+    size_t enclen = 0;
     size_t block_size = 0;
     size_t i, j;
     uint8_t *out;
@@ -91,28 +91,31 @@ int main(int argc, char** argv) {
 
     out = calloc(outlen, sizeof(uint8_t));
 
-    for (i=1;i < inlen/2; i++) {
-        oracle(data, 2*i, out, &outlen);
-        block_size = detect_block_size(out, outlen);
+    oracle(data, 0, out, outlen, &enclen);
+    data = calloc(enclen, sizeof(uint8_t));
+    inlen = enclen;
+    for (i=1;i < inlen; i++) {
+        oracle(data, 2*i, out, outlen, &enclen);
+        block_size = detect_block_size(out, enclen);
         if (block_size > 0
-                && detect_ecb(out, outlen, block_size)) {
+                && detect_ecb(out, enclen, block_size)) {
             ok = 1;
             printf("block size: %zu\n", block_size);
             break;
         }
     }
+    
     if (ok) {
-        sprintf(format, "\ndata: %%1.%zus\n", block_size);
-        search = calloc(block_size, sizeof(uint8_t));
+        search = calloc(inlen, sizeof(uint8_t));
 
         uint8_t k;
-        for (j = block_size-1; j > 0; j--) {
-            k = block_size - 1;
+        for (j = inlen-1; j > 0; j--) {
+            k = inlen - 1;
             // generate data to search for
-            oracle(data, j, out, &outlen);
+            oracle(data, j, out, outlen, &enclen);
 
             // store search
-            memcpy(search, out, block_size);
+            memcpy(search, out, inlen);
 
             // try each ascii char & cmp with search
             uint8_t c=0;
@@ -123,12 +126,12 @@ int main(int argc, char** argv) {
                 /* printf(format, data); */
 
                 // encrypt
-                oracle(data, block_size, out, &outlen);
+                oracle(data, inlen, out, outlen, &enclen);
 
                 // compare
-                if (memcmp(search, out, block_size) == 0) {
+                if (bcmp(search, out, inlen) == 0) {
                     printf("%c", c);
-                    for (k=j;k<block_size;k++) {
+                    for (k=j;k<inlen;k++) {
                         data[k-1] = data[k];
                     }
                     break;
@@ -139,13 +142,10 @@ int main(int argc, char** argv) {
 
         free(search);
     }
-    /* char * hex = malloc((outlen*2+1)*sizeof(char)); */
-    /* hex[outlen*2] = '\0'; */
-    /* dohex(out, hex, outlen); */
-    /* puts(hex); */
 
+    free(data);
     free(out);
-    /* free(hex); */
+
     return 0;
 }
 
