@@ -12,6 +12,6 @@ int aes_cbc(FILE *, FILE *, int);
 int aes_128_cbc(FILE *, FILE *, int, uint8_t *, uint8_t *);
 int aes_128_ecb(FILE *, FILE *, int, uint8_t *, size_t *);
 unsigned int detect_ecb(uint8_t *, size_t, uint8_t);
-unsigned int detect_block_size(uint8_t *, size_t);
+size_t detect_block_size(uint8_t *, size_t);
 
 #endif /* CRYPTO_H */

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <math.h>
 
 #include <openssl/evp.h>
 #include <openssl/bio.h>
@@ -346,8 +347,8 @@ unsigned int detect_ecb(uint8_t *buf, size_t length, uint8_t block_size) {
 }
 
 /**
- * Detect the minimal block size of ECB. The input contains at the start
- * two neighbouring blocks with the same data. Determine the size of the
+ * Detect the minimal block size of ECB. The input contains two
+ * neighbouring blocks with the same data. Determine the size of the
  * block.
  *
  * @param buf input
@@ -355,16 +356,17 @@ unsigned int detect_ecb(uint8_t *buf, size_t length, uint8_t block_size) {
  *
  * @returns block size or 0
  */
-unsigned int detect_block_size(uint8_t *buf, size_t length) {
-    uint8_t BLOCK_SIZE = 0;
-    size_t max_size = floor((length/2));
-    size_t i;
+size_t detect_block_size(uint8_t *buf, size_t length) {
+    size_t BLOCK_SIZE = 0;
+    size_t max_size = floor(length/2);
+    size_t i,j;
 
-
-    for (i=1;i<=max_size;i++) {
-        if (bcmp(buf + 0*i, buf + 1*i, i) == 0) {
-            BLOCK_SIZE=i;
-            break;
+    for (i=2;i<=max_size;i++) {
+        for (j=0;j < floor(length/i);j++) {
+            if (bcmp(buf + j*i, buf + (j+1)*i, i) == 0) {
+                BLOCK_SIZE=i;
+                break;
+            }
         }
     }
 
