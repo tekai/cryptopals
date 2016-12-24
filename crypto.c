@@ -327,7 +327,7 @@ int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) 
  * @param length of encrypted data
  * @param block_size which was used
  */
-unsigned int detect_ecb(byte *buf, size_t length, uint8_t block_size) {
+unsigned int detect_ecb(uint8_t *buf, size_t length, uint8_t block_size) {
     size_t chunks;
     unsigned int ecb = 0;
     size_t i,j,h;
@@ -343,4 +343,30 @@ unsigned int detect_ecb(byte *buf, size_t length, uint8_t block_size) {
     }
 
     return ecb;
+}
+
+/**
+ * Detect the minimal block size of ECB. The input contains at the start
+ * two neighbouring blocks with the same data. Determine the size of the
+ * block.
+ *
+ * @param buf input
+ * @param length of the input
+ *
+ * @returns block size or 0
+ */
+unsigned int detect_block_size(uint8_t *buf, size_t length) {
+    uint8_t BLOCK_SIZE = 0;
+    size_t max_size = floor((length/2));
+    size_t i;
+
+
+    for (i=1;i<=max_size;i++) {
+        if (bcmp(buf + 0*i, buf + 1*i, i) == 0) {
+            BLOCK_SIZE=i;
+            break;
+        }
+    }
+
+    return BLOCK_SIZE;
 }

@@ -1,8 +1,6 @@
 #ifndef CRYPTO_H
 #define CRYPTO_H
 
-typedef uint8_t byte;
-
 void unhex(char *, uint8_t *, size_t);
 void dohex(uint8_t *, char *, size_t);
 void arr_xor(uint8_t *, uint8_t *, size_t);
@@ -13,6 +11,7 @@ int do_crypt(FILE *, FILE *, int);
 int aes_cbc(FILE *, FILE *, int);
 int aes_128_cbc(FILE *, FILE *, int, uint8_t *, uint8_t *);
 int aes_128_ecb(FILE *, FILE *, int, uint8_t *, size_t *);
-unsigned int detect_ecb(byte *, size_t, uint8_t);
+unsigned int detect_ecb(uint8_t *, size_t, uint8_t);
+unsigned int detect_block_size(uint8_t *, size_t);
 
 #endif /* CRYPTO_H */

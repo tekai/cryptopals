@@ -49,32 +49,6 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t outlen, size_t * encl
     return 1;
 }
 
-/**
- * Detect the minimal block size of ECB. The input contains at the start
- * two neighbouring blocks with the same data. Determine the size of the
- * block.
- *
- * @param buf input
- * @param length of the input
- *
- * @returns block size or 0
- */
-unsigned int detect_block_size(byte *buf, size_t length) {
-    uint8_t BLOCK_SIZE = 0;
-    size_t max_size = floor((length/2));
-    size_t i;
-
-
-    for (i=1;i<=max_size;i++) {
-        if (bcmp(buf + 0*i, buf + 1*i, i) == 0) {
-            BLOCK_SIZE=i;
-            break;
-        }
-    }
-
-    return BLOCK_SIZE;
-}
-
 
 int main(int argc, char** argv) {
 
