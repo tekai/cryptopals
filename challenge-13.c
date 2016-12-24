@@ -21,7 +21,7 @@ USER* decode_user(char kv) {
 }
 
 char* encode_user(USER* user) {
-    size_t length = 17; // names + 2& + 3=
+    size_t length = 17; // names + 2& + 3= + 0
     char * uid;
     char * encoded = NULL;
 
@@ -29,8 +29,7 @@ char* encode_user(USER* user) {
     length += asprintf(&uid, "%zu", user->uid);
     length += strlen(user->role);
 
-    encoded = malloc(length*sizeof(char));
-
+    encoded = calloc(length, sizeof(char));
     strcat(encoded, "user=");
     strcat(encoded, user->email);
     strcat(encoded, "&uid=");
