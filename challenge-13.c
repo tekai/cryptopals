@@ -46,7 +46,7 @@ char* profile_for(char * email) {
     USER * user = malloc(sizeof(USER));
     strncpy(user->email, email, 256);
     user->uid = 10;
-    strcat(user->role, "user");
+    strncpy(user->role, "user", 5);
 
     char * str = encode_user(user);
 
@@ -55,7 +55,7 @@ char* profile_for(char * email) {
     return str;
 }
 
-int oracle(char * email, size_t inlen, uint8_t * out, size_t *outlen) {
+int oracle(char * email, uint8_t * out, size_t *outlen) {
     char * data = profile_for(email);
     uint8_t key[] = "Yellow Subm4r1ne";
     FILE *s_in, *s_out;
@@ -73,54 +73,86 @@ int oracle(char * email, size_t inlen, uint8_t * out, size_t *outlen) {
 
     return 1;
 }
-
+/*
+task: decrypt input and create an encrypted profile with role=admin
+assumption: I only get the oracle and the encrypted string.
+decrypting: when trying to figure out the block size, we'll find that block 2 & 3 will be the same and we need 2*block_size + block_size.
+create admin: create blocks with the needed data, stretch email so "&role=" is in one block, "user" is in the next, replace next with a block "admin"
+ */
 int decrypt_oracle(uint8_t * input, size_t inlen) {
 
     char * data = NULL;
     // max extra data from oracle, plus 1 block of padding
     size_t outlen = 8192;
+    size_t l;
+    size_t block_size;
     size_t i, k;
     uint8_t c;
     uint8_t *out;
     uint8_t *search;
+    int ok = 0;
 
     out = calloc(outlen, sizeof(uint8_t));
     search = calloc(inlen, sizeof(uint8_t));
-    data = calloc(inlen, sizeof(uint8_t));
-    for (i = inlen; i < inlen; i++) {
+
+    data = calloc(4*inlen+1, sizeof(uint8_t));
+    for (i = 0; i < 4*inlen; i++) {
         data[i] = 'A';
     }
-    for (i = inlen - 1; i > 0; i--) {
-        k = inlen - 1;
-        // generate data to search for
-        oracle(data, i, out, &outlen);
+    data[4*inlen] = 0;
 
-        // store search
-        memcpy(search, out, inlen);
-
-        // try each ascii char & cmp with search
-        for (c=1; c < 128; c++) {
-
-            // modify data to contain current char
-            data[k] = c;
-
-            // encrypt
-            oracle(data, inlen, out, &outlen);
-
-            // compare
-            if (bcmp(search, out, inlen) == 0) {
-                printf("%c", c);
-                for (k=i;k<inlen;k++) {
-                    data[k-1] = data[k];
-                }
-                break;
-            }
+    for (i=1;i < 2*inlen; i++) {
+        // fool strlen
+        data[2*i] = 0;
+        // restore old data
+        data[2*(i-1)] = 'A';
+        printf("len: %zu\n", 2*i);
+        l = outlen;
+        oracle(data, out, &l);
+        block_size = detect_block_size(out, l);
+        if (block_size > 0
+                && detect_ecb(out, l, block_size)) {
+            printf("block size: %zu\n", block_size);
+            ok = 1;
+            break;
         }
     }
-    printf("\n");
 
+    if (0&&ok) {
+        for (i = inlen - 1; i > 0; i--) {
+            k = inlen - 1;
+            l = outlen;
+            // generate data to search for
+            oracle(data, out, &l);
+
+            // store search
+            memcpy(search, out, inlen);
+
+            // try each ascii char & cmp with search
+            for (c=1; c < 128; c++) {
+
+                // modify data to contain current char
+                data[k] = c;
+
+                // encrypt
+                l = outlen;
+                oracle(data, out, &l);
+
+                // compare
+                if (bcmp(search, out, inlen) == 0) {
+                    printf("%c", c);
+                    for (k=i;k<inlen;k++) {
+                        data[k-1] = data[k];
+                    }
+                    break;
+                }
+            }
+        }
+        printf("\n");
+    }
+
+    // cleanup
     free(search);
-
     free(data);
     free(out);
 
@@ -133,7 +165,7 @@ int main(int argc, char** argv) {
     uint8_t * out;
 
     out = calloc(outlen, sizeof(uint8_t));
-    oracle(email, strlen(email), out, &outlen);
+    oracle(email, out, &outlen);
 
     decrypt_oracle(out, outlen);
 
