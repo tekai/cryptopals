@@ -118,13 +118,34 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
             printf("block size: %zu\n", block_size);
             prefix = k*block_size - (2*i - 2*block_size);
             printf("prefix: %zu\n", prefix);
-            // postfix is not exact because of padding
+            // postfix is not exact yet because of padding
             postfix = l - ((2 + k)*block_size);
-            printf("postfix: %zu\n", postfix);
             ok = 1;
+            // restore full length string
+            data[2*i] = 'A';
             break;
         }
     }
+
+
+    // calculate exact postfix length
+    // we continue the loop, but single step now
+    k = l;
+    for (i=2*i+1;i < 4*inlen; i++) {
+        // fool strlen
+        data[i] = 0;
+        // restore old data
+        data[i-1] = 'A';
+
+        l = outlen;
+        oracle(data, out, &l);
+        if (l > k) {
+            break;
+        }
+        postfix--;
+    }
+    // postfix is exact now
+    printf("postfix: %zu\n", postfix);
 
     if (0&&ok) {
         for (i = inlen - 1; i > 0; i--) {
