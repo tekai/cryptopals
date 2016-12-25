@@ -86,6 +86,7 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
     size_t outlen = 8192;
     size_t l;
     size_t block_size;
+    size_t prefix, postfix;
     size_t i, k;
     uint8_t c;
     uint8_t *out;
@@ -94,7 +95,8 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
 
     out = calloc(outlen, sizeof(uint8_t));
     search = calloc(inlen, sizeof(uint8_t));
-
+    // 4*inlen because inlen could be block_size and we need to add two
+    // identical blocks but 3 is uneven, so 4 it is
     data = calloc(4*inlen+1, sizeof(uint8_t));
     for (i = 0; i < 4*inlen; i++) {
         data[i] = 'A';
@@ -106,13 +108,19 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
         data[2*i] = 0;
         // restore old data
         data[2*(i-1)] = 'A';
-        printf("len: %zu\n", 2*i);
+
         l = outlen;
         oracle(data, out, &l);
-        block_size = detect_block_size(out, l);
+
+        block_size = detect_block_size(out, l, &k);
         if (block_size > 0
                 && detect_ecb(out, l, block_size)) {
             printf("block size: %zu\n", block_size);
+            prefix = k*block_size - (2*i - 2*block_size);
+            printf("prefix: %zu\n", prefix);
+            // postfix is not exact because of padding
+            postfix = l - ((2 + k)*block_size);
+            printf("postfix: %zu\n", postfix);
             ok = 1;
             break;
         }
