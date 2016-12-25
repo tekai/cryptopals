@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     inlen = enclen;
     for (i=1;i < inlen; i++) {
         oracle(data, 2*i, out, outlen, &enclen);
-        block_size = detect_block_size(out, enclen);
+        block_size = detect_block_size(out, enclen, &j);
         if (block_size > 0
                 && detect_ecb(out, enclen, block_size)) {
             ok = 1;

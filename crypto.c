@@ -353,10 +353,11 @@ unsigned int detect_ecb(uint8_t *buf, size_t length, uint8_t block_size) {
  *
  * @param buf input
  * @param length of the input
+ * @param start at which block a match was found
  *
  * @returns block size or 0
  */
-size_t detect_block_size(uint8_t *buf, size_t length) {
+size_t detect_block_size(uint8_t *buf, size_t length, size_t *start) {
     size_t BLOCK_SIZE = 0;
     size_t max_size = floor(length/2);
     size_t i,j;
@@ -365,6 +366,7 @@ size_t detect_block_size(uint8_t *buf, size_t length) {
         for (j=0;j < floor(length/i);j++) {
             if (bcmp(buf + j*i, buf + (j+1)*i, i) == 0) {
                 BLOCK_SIZE=i;
+                *start = j;
                 break;
             }
         }
