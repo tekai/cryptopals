@@ -30,7 +30,7 @@ char* encode_user(USER* user) {
     length += strlen(user->role);
 
     encoded = calloc(length, sizeof(char));
-    strcat(encoded, "user=");
+    strcat(encoded, "email=");
     strcat(encoded, user->email);
     strcat(encoded, "&uid=");
     strcat(encoded, uid);
