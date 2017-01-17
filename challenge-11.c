@@ -1,3 +1,10 @@
+#ifdef __linux__
+  // for uint8_t etc
+  #include <stdint.h>
+  // arc4random( etc
+  #include <bsd/stdlib.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -47,7 +54,6 @@ int oracle(uint8_t *in, size_t inlen, uint8_t *out, size_t * outlen) {
 
 
 int main(int argc, char** argv) {
-    sranddev();
 
     uint8_t data[] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
     size_t inlen  = strlen((char*)data);

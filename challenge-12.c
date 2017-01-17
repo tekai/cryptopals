@@ -1,3 +1,9 @@
+#ifdef __linux__
+  // for uint8_t etc
+  #include <stdint.h>
+#endif
+
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

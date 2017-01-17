@@ -1,3 +1,10 @@
+#ifdef __APPLE__
+#elif __linux__
+  // for asprintf
+  #define _GNU_SOURCE
+  // for uint8_t etc
+  #include <stdint.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

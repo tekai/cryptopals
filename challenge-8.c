@@ -1,9 +1,14 @@
+#ifdef __linux__
+  // for uint8_t etc
+  #include <stdint.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 
-void detect_ecb(char *buf) {
+void _detect_ecb(char *buf) {
     long int len = strlen(buf);
     uint8_t chunks;
     uint8_t ** c;
@@ -39,7 +44,7 @@ int detect_ecb_lines(FILE *in) {
     char inbuf[1024];
     char * str;
     while ((str = fgets(inbuf, 1024, in))) {
-        detect_ecb(inbuf);
+        _detect_ecb(inbuf);
     }
     return 0;
 }
