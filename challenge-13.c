@@ -21,6 +21,8 @@ typedef struct _user {
     char role[5];
 } USER;
 
+// todo init with random key
+uint8_t __key[] = "Yellow Subm4r1ne";
 
 USER* decode_user(char kv) {
     USER * user = malloc(sizeof(USER));
@@ -64,14 +66,14 @@ char* profile_for(char * email) {
 
 int oracle(char * email, uint8_t * out, size_t *outlen) {
     char * data = profile_for(email);
-    uint8_t key[] = "Yellow Subm4r1ne";
+
     FILE *s_in, *s_out;
 
     s_in  = fmemopen(data, strlen(data), "r");
     s_out = fmemopen(out, *outlen, "w");
 
     // encrypt
-    aes_128_ecb(s_in, s_out, 1, key, outlen);
+    aes_128_ecb(s_in, s_out, 1, __key, outlen);
 
     // clean up
     fclose(s_out);
@@ -80,11 +82,34 @@ int oracle(char * email, uint8_t * out, size_t *outlen) {
 
     return 1;
 }
+
+int _decrypt(uint8_t * in, size_t * inlen, uint8_t * out, size_t * outlen) {
+    FILE *s_in, *s_out;
+
+    s_in  = fmemopen(in, *inlen, "r");
+    s_out = fmemopen(out, *outlen, "w");
+
+    // encrypt
+    aes_128_ecb(s_in, s_out, 0, __key, outlen);
+
+    fclose(s_out);
+    fclose(s_in);
+
+    return 1;
+}
+
 /*
-task: decrypt input and create an encrypted profile with role=admin
-assumption: I only get the oracle and the encrypted string.
-decrypting: when trying to figure out the block size, we'll find that block 2 & 3 will be the same and we need 2*block_size + block_size.
-create admin: create blocks with the needed data, stretch email so "&role=" is in one block, "user" is in the next, replace next with a block "admin"
+ task: decrypt input and create an encrypted profile with role=admin
+
+ assumption: I only get the oracle and the encrypted string.
+
+ decrypting: when trying to figure out the block size, we'll find that
+ block 2 & 3 will be the same and we need 2*block_size + block_size.
+
+ create admin: create blocks with the needed data, stretch email so
+ "&role=" is in one block, "user" is in the next, replace next with a
+ block "admin"
+
  */
 int decrypt_oracle(uint8_t * input, size_t inlen) {
 
@@ -199,11 +224,18 @@ int main(int argc, char** argv) {
     char email[] = "user@example.org";
     size_t outlen = 2048;
     uint8_t * out;
+    size_t inlen = 2048;
+    uint8_t * in;
 
     out = calloc(outlen, sizeof(uint8_t));
+    in = calloc(inlen, sizeof(uint8_t));
+
     oracle(email, out, &outlen);
 
-    decrypt_oracle(out, outlen);
+    _decrypt(out, &outlen, in, &inlen);
+    puts(in);
+    /* decrypt_oracle(out, outlen); */
 
     free(out);
+    free(in);
 }
