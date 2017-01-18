@@ -18,11 +18,36 @@
 typedef struct _user {
     char email[256];
     size_t uid;
-    char role[5];
+    char role[6];
 } USER;
 
 // todo init with random key
 uint8_t __key[] = "Yellow Subm4r1ne";
+
+char* urlencode(char * in) {
+    char * out = calloc(strlen(in)*3+1, sizeof(char));
+    char * i = in;
+    char * j = out;
+
+    while (*i) {
+        *j = *i;
+        if (*i == '&') {
+            *j++ = '%';
+            *j++ = '2';
+            *j   = '6';
+        }
+        else if (*i == '=') {
+            *j++ = '%';
+            *j++ = '3';
+            *j   = 'd';
+        }
+        i++; j++;
+    }
+    // terminate new string
+    *(++j) = 0;
+
+    return out;
+}
 
 USER* decode_user(char kv) {
     USER * user = malloc(sizeof(USER));
@@ -34,18 +59,20 @@ char* encode_user(USER* user) {
     char * uid;
     char * encoded = NULL;
 
-    length += strlen(user->email);
+    char * email = urlencode(user->email);
+    length += strlen(email);
     length += asprintf(&uid, "%zu", user->uid);
     length += strlen(user->role);
 
     encoded = calloc(length, sizeof(char));
     strcat(encoded, "email=");
-    strcat(encoded, user->email);
+    strcat(encoded, email);
     strcat(encoded, "&uid=");
     strcat(encoded, uid);
     strcat(encoded, "&role=");
     strcat(encoded, user->role);
 
+    free(email);
     free(uid);
 
     return encoded;
