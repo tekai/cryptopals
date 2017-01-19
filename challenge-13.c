@@ -162,11 +162,13 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
     }
     data[4*inlen] = 0;
 
-    for (i=1;i < 2*inlen; i++) {
+    // i is the current
+    for (i=16;i < 4*inlen; i++) {
+
         // fool strlen
-        data[2*i] = 0;
+        data[i] = 0;
         // restore old data
-        data[2*(i-1)] = 'A';
+        data[(i-1)] = 'A';
 
         l = outlen;
         oracle(data, out, &l);
@@ -175,22 +177,21 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
         if (block_size > 0
                 && detect_ecb(out, l, block_size)) {
             printf("block size: %zu\n", block_size);
-            prefix = k*block_size - (2*i - 2*block_size);
+            prefix = k*block_size - (i - 2*block_size);
             printf("prefix: %zu\n", prefix);
             // postfix is not exact yet because of padding
             postfix = l - ((2 + k)*block_size);
             ok = 1;
             // restore full length string
-            data[2*i] = 'A';
+            data[i] = 'A';
             break;
         }
     }
 
-
     // calculate exact postfix length
     // we continue the loop, but single step now
     k = l;
-    for (i=2*i+1;i < 4*inlen; i++) {
+    for (i=i+1;i < 4*inlen; i++) {
         // fool strlen
         data[i] = 0;
         // restore old data
@@ -259,9 +260,9 @@ int main(int argc, char** argv) {
 
     oracle(email, out, &outlen);
 
-    _decrypt(out, &outlen, in, &inlen);
-    puts(in);
-    /* decrypt_oracle(out, outlen); */
+    /* _decrypt(out, &outlen, in, &inlen); */
+    /* puts(in); */
+    decrypt_oracle(out, outlen);
 
     free(out);
     free(in);
