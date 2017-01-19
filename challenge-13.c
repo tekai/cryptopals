@@ -44,7 +44,7 @@ char* urlencode(char * in) {
         i++; j++;
     }
     // terminate new string
-    *(++j) = 0;
+    *j = 0;
 
     return out;
 }
@@ -55,7 +55,7 @@ USER* decode_user(char kv) {
 }
 
 char* encode_user(USER* user) {
-    size_t length = 17; // names + 2& + 3= + 0
+    size_t length = 18; // 12names + 2& + 3= + 10
     char * uid;
     char * encoded = NULL;
 
@@ -80,7 +80,7 @@ char* encode_user(USER* user) {
 
 char* profile_for(char * email) {
     USER * user = malloc(sizeof(USER));
-    strncpy(user->email, email, 256);
+    strncpy(user->email, email, 255);
     user->uid = 10;
     strncpy(user->role, "user", 5);
 
@@ -96,7 +96,7 @@ int oracle(char * email, uint8_t * out, size_t *outlen) {
 
     FILE *s_in, *s_out;
 
-    s_in  = fmemopen(data, strlen(data), "r");
+    s_in  = fmemopen(data, strlen(data)+1, "r");
     s_out = fmemopen(out, *outlen, "w");
 
     // encrypt
