@@ -190,6 +190,7 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
 
     // calculate exact postfix length
     // we continue the loop, but single step now
+    // TODO postfix: 19 is wrong, should be 17 + 1
     k = l;
     for (i=i+1;i < 4*inlen; i++) {
         // fool strlen
@@ -200,23 +201,30 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
         l = outlen;
         oracle(data, out, &l);
         if (l > k) {
+            data[i] = 'A';
             break;
         }
         postfix--;
     }
+
     // postfix is exact now
     printf("postfix: %zu\n", postfix);
 
-    if (0&&ok) {
-        for (i = inlen - 1; i > 0; i--) {
-            k = inlen - 1;
-            l = outlen;
+    if (ok) {
+        size_t L = ceil((float) prefix / (float) block_size) * block_size - 1;
+        size_t U = L + ceil((float)postfix / (float) block_size) * block_size;
+
+        for (i=1; i <= postfix; i++) {
+            k = U - postfix - i;
+
             // generate data to search for
+            data[U-i] = 0;
+            l = outlen;
             oracle(data, out, &l);
 
             // store search
-            memcpy(search, out, inlen);
-
+            memcpy(search, out, U);
+            data[k+1] = 0;
             // try each ascii char & cmp with search
             for (c=1; c < 128; c++) {
 
@@ -228,7 +236,7 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
                 oracle(data, out, &l);
 
                 // compare
-                if (bcmp(search, out, inlen) == 0) {
+                if (bcmp(search, out, U) == 0) {
                     printf("%c", c);
                     for (k=i;k<inlen;k++) {
                         data[k-1] = data[k];
