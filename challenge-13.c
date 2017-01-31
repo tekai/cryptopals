@@ -60,7 +60,7 @@ USER* decode_user(char kv) {
 }
 
 char* encode_user(USER* user) {
-    size_t length = 18; // 12names + 2& + 3= + 10
+    size_t length = 18; // 12*names + 2*& + 3*= + 1*0x0
     char * uid;
     char * encoded = NULL;
 
@@ -217,6 +217,7 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
         size_t L = ceil((float) prefix / (float) block_size) * block_size;
         size_t U = L + ceil((float)postfix / (float) block_size) * block_size;
         size_t inlen2 = U - prefix;
+        printf("L: %zu, U: %zu, inlen2: %zu\n", L, U, inlen2);
         char * decoded = calloc(inlen2+1, sizeof(char));
         for (i = 0; i < inlen2; i++) {
             decoded[i] = data[i];
@@ -224,6 +225,56 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
         decoded[inlen2] = 0;
         data[inlen2] = 0;
 
+        // test escape
+        if (1) {
+
+            // test %
+            data[inlen2 -3] = '%';
+            data[inlen2 -2] = 'A';
+            data[inlen2 -1] = 'A';
+            decoded[inlen2 -3] = '%';
+            decoded[inlen2 -2] = 'B';
+            decoded[inlen2 -1] = 'B';
+            l = outlen;
+            oracle(data, out, &l);
+            memcpy(search, out, U);
+            l = outlen;
+            oracle(decoded, out, &l);
+            if (bcmp(search, out, U) == 0) {
+                printf("%% is encoded\n");
+
+                data[inlen2 -3] = 'A';
+                data[inlen2 -2] = 'A';
+                decoded[inlen2 -3] = 'A';
+                decoded[inlen2 -2] = 'A';
+
+                // test &
+                data[inlen2 -1] = '&';
+                decoded[inlen2 -1] = '%';
+                l = outlen;
+                oracle(data, out, &l);
+                memcpy(search, out, U);
+                l = outlen;
+                oracle(decoded, out, &l);
+                if (bcmp(search, out, U) == 0) {
+                    printf("& is encoded\n");
+                }
+
+                // test =
+                data[inlen2 -1] = '=';
+                decoded[inlen2 -1] = '%';
+                l = outlen;
+                oracle(data, out, &l);
+                memcpy(search, out, U);
+                l = outlen;
+                oracle(decoded, out, &l);
+                if (bcmp(search, out, U) == 0) {
+                    printf("= is encoded\n");
+                }
+            }
+        }
+
+        if (0) // disable next statement
         for (i=1; i <= postfix; i++) {
             k = inlen2 - i;
 
@@ -239,6 +290,10 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
             // try each ascii char & cmp with search
             ok = 0;
             for (c=1; c < 128; c++) {
+                // skip encoded characters
+                if (c == '%' || c == '&' || c == '=') {
+                    continue;
+                }
                 // modify data to contain current char
                 decoded[inlen2-1] = c;
 
@@ -257,6 +312,8 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
                 }
             }
             if (!ok) {
+
+                // we might have a character which will be encoded by the oracle
 
                 printf("search failed at %zu\n", i);
                 break;
