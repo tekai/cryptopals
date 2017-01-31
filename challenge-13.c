@@ -41,6 +41,11 @@ char* urlencode(char * in) {
             *j++ = '3';
             *j   = 'd';
         }
+        else if (*i == '%') {
+            *j++ = '%';
+            *j++ = '2';
+            *j   = '5';
+        }
         i++; j++;
     }
     // terminate new string
