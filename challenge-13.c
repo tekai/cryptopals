@@ -161,7 +161,7 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
     search = calloc(inlen, sizeof(uint8_t));
     // 4*inlen because inlen could be block_size and we need to add two
     // identical blocks but 3 is uneven, so 4 it is
-    data = calloc(4*inlen+1, sizeof(uint8_t));
+    data = calloc(4*inlen+1, sizeof(char));
     for (i = 0; i < 4*inlen; i++) {
         data[i] = 'A';
     }
