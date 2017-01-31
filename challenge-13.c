@@ -214,41 +214,57 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
     printf("postfix: %zu\n", postfix);
 
     if (ok) {
-        size_t L = ceil((float) prefix / (float) block_size) * block_size - 1;
+        size_t L = ceil((float) prefix / (float) block_size) * block_size;
         size_t U = L + ceil((float)postfix / (float) block_size) * block_size;
+        size_t inlen2 = U - prefix;
+        char * decoded = calloc(inlen2+1, sizeof(char));
+        for (i = 0; i < inlen2; i++) {
+            decoded[i] = data[i];
+        }
+        decoded[inlen2] = 0;
+        data[inlen2] = 0;
 
         for (i=1; i <= postfix; i++) {
-            k = U - postfix - i;
+            k = inlen2 - i;
 
             // generate data to search for
-            data[U-i] = 0;
+            data[k] = 0;
+
             l = outlen;
             oracle(data, out, &l);
 
             // store search
             memcpy(search, out, U);
-            data[k+1] = 0;
-            // try each ascii char & cmp with search
-            for (c=1; c < 128; c++) {
 
+            // try each ascii char & cmp with search
+            ok = 0;
+            for (c=1; c < 128; c++) {
                 // modify data to contain current char
-                data[k] = c;
+                decoded[inlen2-1] = c;
 
                 // encrypt
                 l = outlen;
-                oracle(data, out, &l);
+                oracle(decoded, out, &l);
 
                 // compare
                 if (bcmp(search, out, U) == 0) {
                     printf("%c", c);
-                    for (k=i;k<inlen;k++) {
-                        data[k-1] = data[k];
+                    for (k = 1; k < inlen2; k++) {
+                        decoded[k-1] = decoded[k];
                     }
+                    ok = 1;
                     break;
                 }
             }
+            if (!ok) {
+
+                printf("search failed at %zu\n", i);
+                break;
+            }
         }
+        free(decoded);
         printf("\n");
+
     }
 
     // cleanup
