@@ -193,23 +193,21 @@ int decrypt_oracle(uint8_t * input, size_t inlen) {
         }
     }
 
-    // calculate exact postfix length
-    // we continue the loop, but single step now
-    // TODO postfix: 19 is wrong, should be 17 + 1
+    // calculate exact postfix length, we continue the loop
     k = l;
-    for (i=i+1;i < 4*inlen; i++) {
+    for (i=i+0;i < 4*inlen; i++) {
         // fool strlen
         data[i] = 0;
-        // restore old data
-        data[i-1] = 'A';
-
+        /* puts(data); */
         l = outlen;
         oracle(data, out, &l);
+        // restore old data
+        data[i] = 'A';
+
         if (l > k) {
-            data[i] = 'A';
+            postfix = k - prefix - i;
             break;
         }
-        postfix--;
     }
 
     // postfix is exact now
