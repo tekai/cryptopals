@@ -486,6 +486,11 @@ to learn from it?
   kkIzWhQ5Rxd/vnM2QQr9Cxa2J9GXEV3kGDiZV90+PCDSVGY4VgF8y7GedI1h
 #+END_SRC
 
+*** Solution
+challenge-10.c
+
+$ base64 -d 10.data | ./challenge-10 -d
+
 ** DONE 11. An ECB/CBC detection oracle
    CLOSED: [2016-04-28 Thu 21:13]
 Now that you have ECB and CBC working:
