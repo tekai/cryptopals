@@ -12,7 +12,7 @@ endif
 
 CC=clang
 CFLAGS=-Wall -I/usr/local/opt/openssl/include -I. -g
-LIBS=-L/usr/local/opt/openssl/lib -lcrypto $(OS_LIBS)
+LIBS=-L/usr/local/opt/openssl/lib -lcrypto -lssl $(OS_LIBS)
 DEPS=crypto.h
 
 all:

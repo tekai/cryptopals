@@ -129,39 +129,43 @@ int aes_128_ecb(FILE *in, FILE *out, int do_encrypt, uint8_t *key, size_t *datal
     /* Allow enough space in output buffer for additional block */
     unsigned char inbuf[1024], outbuf[1024 + EVP_MAX_BLOCK_LENGTH];
     int inlen, outlen;
-    EVP_CIPHER_CTX ctx;
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (ctx == NULL) {
+        return 1;
+    }
 
     /* Don't set key right away; we want to check lengths */
-    EVP_CIPHER_CTX_init(&ctx);
-    EVP_CipherInit_ex(&ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
+    /* EVP_CIPHER_CTX_init(ctx); */
+    EVP_CipherInit_ex(ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
         do_encrypt);
 
-    OPENSSL_assert(EVP_CIPHER_CTX_key_length(&ctx) == 16);
+    OPENSSL_assert(EVP_CIPHER_CTX_key_length(ctx) == 16);
 
     /* Now we can set key*/
-    EVP_CipherInit_ex(&ctx, NULL, NULL, key, NULL, do_encrypt);
+    EVP_CipherInit_ex(ctx, NULL, NULL, key, NULL, do_encrypt);
 
     *datalen = 0;
     for(;;)  {
         inlen = fread(inbuf, 1, 1024, in);
         if(inlen <= 0) break;
-        if(!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, inlen)) {
+        if(!EVP_CipherUpdate(ctx, outbuf, &outlen, inbuf, inlen)) {
             /* Error */
-            EVP_CIPHER_CTX_cleanup(&ctx);
+            EVP_CIPHER_CTX_free(ctx);
             return 1;
         }
         *datalen += outlen;
         fwrite(outbuf, 1, outlen, out);
     }
-    if(!EVP_CipherFinal_ex(&ctx, outbuf, &outlen)) {
+    if(!EVP_CipherFinal_ex(ctx, outbuf, &outlen)) {
         /* Error */
-        EVP_CIPHER_CTX_cleanup(&ctx);
+        EVP_CIPHER_CTX_free(ctx);
         return 1;
     }
     *datalen += outlen;
     fwrite(outbuf, 1, outlen, out);
 
-    EVP_CIPHER_CTX_cleanup(&ctx);
+    /* EVP_CIPHER_CTX_free(ctx); */
+    EVP_CIPHER_CTX_free(ctx);
 
 
     return 0;
@@ -179,7 +183,10 @@ int do_crypt(FILE *in, FILE *out, int do_encrypt) {
     unsigned char inbuf[8192], outbuf[8192 + EVP_MAX_BLOCK_LENGTH];
     unsigned char b64buf[4096];
     int b64len, inlen, outlen;
-    EVP_CIPHER_CTX ctx;
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (ctx == NULL) {
+        return 1;
+    }
 
     /* Bogus key and IV: we'd normally set these from
      * another source.
@@ -188,35 +195,34 @@ int do_crypt(FILE *in, FILE *out, int do_encrypt) {
     unsigned char iv[]  = "1234567887654321";
 
     /* Don't set key or IV right away; we want to check lengths */
-    EVP_CIPHER_CTX_init(&ctx);
-    EVP_CipherInit_ex(&ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
+    EVP_CipherInit_ex(ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
         do_encrypt);
 
-    OPENSSL_assert(EVP_CIPHER_CTX_key_length(&ctx) == 16);
+    OPENSSL_assert(EVP_CIPHER_CTX_key_length(ctx) == 16);
 
     /* Now we can set key and IV */
-    EVP_CipherInit_ex(&ctx, NULL, NULL, key, iv, do_encrypt);
+    EVP_CipherInit_ex(ctx, NULL, NULL, key, iv, do_encrypt);
 
 
     for(;;)  {
         inlen = fread(inbuf, 1, 8192, in);
         if(inlen <= 0) break;
         base64_decode(inbuf, inlen, b64buf, &b64len);
-        if(!EVP_CipherUpdate(&ctx, outbuf, &outlen, b64buf, b64len)) {
+        if(!EVP_CipherUpdate(ctx, outbuf, &outlen, b64buf, b64len)) {
             /* Error */
-            EVP_CIPHER_CTX_cleanup(&ctx);
+            EVP_CIPHER_CTX_free(ctx);
             return 1;
         }
         fwrite(outbuf, 1, outlen, out);
     }
-    if(!EVP_CipherFinal_ex(&ctx, outbuf, &outlen)) {
+    if(!EVP_CipherFinal_ex(ctx, outbuf, &outlen)) {
         /* Error */
-        EVP_CIPHER_CTX_cleanup(&ctx);
+        EVP_CIPHER_CTX_free(ctx);
         return 1;
     }
     fwrite(outbuf, 1, outlen, out);
 
-    EVP_CIPHER_CTX_cleanup(&ctx);
+    EVP_CIPHER_CTX_free(ctx);
     return 0;
 }
 
@@ -250,7 +256,10 @@ int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) 
     const uint8_t BLOCK_SIZE = 16;
     uint8_t inbuf[BLOCK_SIZE], outbuf[BLOCK_SIZE + EVP_MAX_BLOCK_LENGTH];
     int inlen, outlen=0,padded=0;
-    EVP_CIPHER_CTX ctx;
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    if (ctx == NULL) {
+        return 1;
+    }
 
     /* Bogus key and IV: we'd normally set these from
      * another source.
@@ -258,16 +267,15 @@ int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) 
     uint8_t last[BLOCK_SIZE];
     memcpy(last, iv, BLOCK_SIZE);
     /* Don't set key or IV right away; we want to check lengths */
-    EVP_CIPHER_CTX_init(&ctx);
-    EVP_CipherInit_ex(&ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
+    EVP_CipherInit_ex(ctx, EVP_aes_128_ecb(), NULL, NULL, NULL,
         do_encrypt);
-    EVP_CIPHER_CTX_set_key_length(&ctx, 16);
-    OPENSSL_assert(EVP_CIPHER_CTX_key_length(&ctx) == 16);
+    EVP_CIPHER_CTX_set_key_length(ctx, 16);
+    OPENSSL_assert(EVP_CIPHER_CTX_key_length(ctx) == 16);
 
     /* Now we can set key and IV */
-    EVP_CipherInit_ex(&ctx, NULL, NULL, key, iv, do_encrypt);
+    EVP_CipherInit_ex(ctx, NULL, NULL, key, iv, do_encrypt);
     // disable padding, so CipherUpdate does output sth.
-    EVP_CIPHER_CTX_set_padding(&ctx, 0);
+    EVP_CIPHER_CTX_set_padding(ctx, 0);
 
     for(;;)  {
         inlen = fread(inbuf, 1, BLOCK_SIZE, in);
@@ -289,9 +297,9 @@ int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) 
             }
             arr_xor(inbuf, last, BLOCK_SIZE);
         }
-        if (!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, BLOCK_SIZE)) {
+        if (!EVP_CipherUpdate(ctx, outbuf, &outlen, inbuf, BLOCK_SIZE)) {
             /* Error */
-            EVP_CIPHER_CTX_cleanup(&ctx);
+            EVP_CIPHER_CTX_free(ctx);
             return 1;
         }
         if (do_encrypt) {
@@ -306,24 +314,24 @@ int aes_128_cbc(FILE *in, FILE *out, int do_encrypt, uint8_t *key, uint8_t *iv) 
     if (do_encrypt && !padded) {
         pkcs7_pad(inbuf, 0, BLOCK_SIZE);
         arr_xor(inbuf, last, BLOCK_SIZE);
-        if (!EVP_CipherUpdate(&ctx, outbuf, &outlen, inbuf, BLOCK_SIZE)) {
+        if (!EVP_CipherUpdate(ctx, outbuf, &outlen, inbuf, BLOCK_SIZE)) {
             /* Error */
-            EVP_CIPHER_CTX_cleanup(&ctx);
+            EVP_CIPHER_CTX_free(ctx);
             return 1;
         }
         fwrite(outbuf, 1, outlen, out);
     }
-    if(!EVP_CipherFinal_ex(&ctx, outbuf, &outlen)) {
+    if(!EVP_CipherFinal_ex(ctx, outbuf, &outlen)) {
         /* Error */
-        EVP_CIPHER_CTX_cleanup(&ctx);
+        EVP_CIPHER_CTX_free(ctx);
         return 1;
     }
     if (outlen > 0) {
         fprintf(stderr, "something went wrong\n");
-        EVP_CIPHER_CTX_cleanup(&ctx);
+        EVP_CIPHER_CTX_free(ctx);
         return 1;
     }
-    EVP_CIPHER_CTX_cleanup(&ctx);
+    EVP_CIPHER_CTX_free(ctx);
     return 0;
 }
 
